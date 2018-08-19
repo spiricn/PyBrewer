@@ -38,6 +38,14 @@ class Config:
 
         return self._getValue('TARGET_TEMPERATURE_C', 25.0)
 
+    @property
+    def relayGpioPinNumber(self):
+        '''
+        Relay control GPIO PIN number
+        '''
+
+        return self._getValue('RELAY_GPIO_PIN_NUMBER', -1)
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]

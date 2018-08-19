@@ -13,6 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Brewer():
     '''
     Main brewer module
@@ -29,7 +30,7 @@ class Brewer():
         self._temperatureSensor = TemperatureSensor(self._config.probeDeviceId)
 
         # Relay control
-        self._relayControl = RelayControl()
+        self._relayControl = RelayControl(self._config.relayGpioPinNumber)
 
         # Temperature control (uses sensor & relay contorl to achieve target temperature)
         self._temperatureControl = TemperatureControl(self._relayControl, self._temperatureSensor, self._config.targetTemperatureCelsius)
