@@ -110,7 +110,7 @@ class Brewer():
         status = {
             'relay_on' : self._relayControl.getState(),
             'temperature_controller_running' : self._temperatureControl.running,
-            'temperature_controller_target_temp' : self._temperatureControl.targetTemperatureCelsius
+            'temperature_controller_target_temp' : self._temperatureControl.targetTemperatureCelsius,
         }
 
         temperature = -1.0

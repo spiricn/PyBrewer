@@ -22,13 +22,33 @@ function refreshStatus() {
     xhr.open('POST', 'rest/status');
 
     xhr.onload = function() {
+        offColor = '#FFFF33'
+
+        onColor = '#00AAff'
+
         var status = JSON.parse(xhr.response);
 
-        document.getElementById("temperature").innerHTML = status.temp + " C";
+        colorStr = status.temp > 0.0 ? (status.temp + 'C' ) : '?';
+
+        document.getElementById("temperature").innerHTML = colorStr;
+
+        if(status.temp <= 0) {
+            document.getElementById("temperature").style.color = '#ffffff'
+        }
+        else if(status.temp >= status.temperature_controller_target_temp) {
+            document.getElementById("temperature").style.color = '#ff0000'
+        }
+        else{
+            document.getElementById("temperature").style.color = '#00ffff'
+        }
 
         document.getElementById("relay_state").innerHTML = (status.relay_on ? 'ON' : 'OFF');
 
+        document.getElementById("relay_state").style.color = status.relay_on ? onColor : offColor;
+
         document.getElementById("temp_control_running").innerHTML = (status.temperature_controller_running ? 'ON' : 'OFF');
+
+        document.getElementById("temp_control_running").style.color = status.temperature_controller_running ? onColor : offColor;
 
         document.getElementById("relayControlButton").disabled = status.temperature_controller_running
 
