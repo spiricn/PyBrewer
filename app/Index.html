@@ -10,10 +10,8 @@ function toggleRelay() {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'rest/relay/toggle');
 
-    xhr.onload = function() {
-        if (xhr.status !== 200) {
-            alert('toggle failed: ' + xhr.response);
-        }
+    xhr.onerror = function() {
+        alert('toggle failed (error: ' + xhr.status + ')');
     };
 
     xhr.send()
@@ -47,10 +45,8 @@ function toggleTempControl() {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'rest/temperature/controller/toggle');
 
-    xhr.onload = function() {
-        if (xhr.status != 200) {
-            alert('toggle failed: ' + xhr.response);
-        }
+    xhr.onerror = function() {
+        alert('toggle failed (error: ' + xhr.status + ')');
     };
 
     xhr.send()
