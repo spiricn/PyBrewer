@@ -1,0 +1,6 @@
+.settings/
+brewer/__pycache__/
+brewer/hw/__pycache__/
+brewer/rest/__pycache__/
+app/tmp/home/spiric/dev/workspace/PyBrewer/app/__pycache__/
+app/tmp/
