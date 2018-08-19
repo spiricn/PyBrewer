@@ -5,5 +5,7 @@ manifest = {
 
     'home_page' : 'Index.html',
 
-    '404_page' : 'Index.html'
+    '404_page' : 'Index.html',
+
+    'favicon' : 'favicon.png',
 }
