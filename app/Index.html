@@ -2,7 +2,7 @@
 
 <head>
 
-<title>PyBrewer</title>
+<title>PyBrewer ${Brewer.version}</title>
 
 <script>
 
@@ -19,7 +19,7 @@ function toggleRelay() {
     xhr.send()
 }
 
-function refreshStatu() {
+function refreshStatus() {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'rest/status');
 
@@ -36,7 +36,7 @@ function refreshStatu() {
 
         status.temperature_controller_running
 
-        setTimeout(refreshStatu,
+        setTimeout(refreshStatus,
             1000)
     };
 
@@ -56,7 +56,7 @@ function toggleTempControl() {
     xhr.send()
 }
 
-refreshStatu()
+refreshStatus()
 
 
 </script>
@@ -66,11 +66,12 @@ refreshStatu()
     html, body {
         background-color: black;
         width: 100%;
+        font-family: "Courier New", Times, serif;
+        color: #00ff00;
     }
 
     td {
-        font-family: "Courier New", Times, serif;
-        color: #00ff00;
+
         font-weight: bold;
         font-size: large;
         padding: 12px 12px 12px 12px;
@@ -93,6 +94,10 @@ refreshStatu()
 
 <body>
 
+
+<h1> PyBrewer ${Brewer.version} </h1>
+</br>
+</br>
 
 <table>
 

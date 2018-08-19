@@ -10,6 +10,7 @@ from TemperatureControl import TemperatureControl
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from time import sleep
 import logging
+import brewer
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +127,14 @@ class Brewer():
         status['temp'] = temperature
 
         return (CODE_OK, MIME_JSON, status)
+
+    @property
+    def version(self):
+        '''
+        Application version
+        '''
+
+        return brewer.__version__
 
     def wait(self):
         '''
