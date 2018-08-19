@@ -1,6 +1,7 @@
 from threading import Thread
 from time import sleep
 import logging
+from brewer.hw.TemperatureSensor import TemperatureSensor
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +47,11 @@ class TemperatureControl():
 
         while self._running:
             # Read the current temperature from probe
-            try:
-                currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
-            except Exception as e:
-                logger.error(e)
-
+            currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
+            
+            if currentTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
                 logger.error('failure reading temperature value, shutting off')
-
+    
                 # Shut the relayt off and wait before trying again
                 self._setRelayState(False)
                 sleep(self.ERROR_SLEEP_TIME_SEC)

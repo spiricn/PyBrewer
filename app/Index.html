@@ -26,13 +26,15 @@ function refreshStatus() {
 
         onColor = '#00AAff'
 
+        invalidTemperature = 99999999
+
         var status = JSON.parse(xhr.response);
 
-        colorStr = status.temp > 0.0 ? (status.temp + 'C' ) : '?';
+        colorStr = status.temp != invalidTemperature ? (status.temp + 'C' ) : '?';
 
         document.getElementById("temperature").innerHTML = colorStr;
 
-        if(status.temp <= 0) {
+        if(status.temp == invalidTemperature) {
             document.getElementById("temperature").style.color = '#ffffff'
         }
         else if(status.temp >= status.temperature_controller_target_temp) {

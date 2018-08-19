@@ -111,16 +111,8 @@ class Brewer():
             'relay_on' : self._relayControl.getState(),
             'temperature_controller_running' : self._temperatureControl.running,
             'temperature_controller_target_temp' : self._temperatureControl.targetTemperatureCelsius,
+            'temp' : self._temperatureSensor.getTemperatureCelsius(),
         }
-
-        temperature = -1.0
-
-        try:
-            temperature = self._temperatureSensor.getTemperatureCelsius()
-        except Exception as e:
-            logger.error(e)
-
-        status['temp'] = temperature
 
         return (CODE_OK, MIME_JSON, status)
 
@@ -138,6 +130,9 @@ class Brewer():
         '''
 
         self._running = False
+
+        if self._temperatureControl.running:
+            self._temperatureControl.setState(False)
 
     def wait(self):
         '''

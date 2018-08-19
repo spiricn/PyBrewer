@@ -1,10 +1,16 @@
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TemperatureSensor:
     '''
     Reads temperature from a DS18B20 probe using a 1 wire protocol
     '''
+
+    # Invalid temperature value
+    TEMP_INVALID_C = 99999999
 
     # Path to 1 wire devices
     ONE_WIRE_DEVICES_PATH = '/sys/bus/w1/devices'
@@ -29,7 +35,8 @@ class TemperatureSensor:
 
         # Check if device file exists
         if not os.path.exists(self._devicePath):
-            raise RuntimeError('Could not find device file: %r' % self._devicePath)
+            logger.error('Could not find device file: %r' % self._devicePath)
+            return self.TEMP_INVALID_C
 
         # Read & parse data
         with open(self._devicePath, 'r') as fileObj:
@@ -40,14 +47,16 @@ class TemperatureSensor:
 
             # Need at least one line
             if len(lines) < 2:
-                raise RuntimeError('Invalid data: %r' % tempData)
+                logger.error('Invalid data: %r' % tempData)
+                return self.TEMP_INVALID_C
 
             # Take last token of the CRC line
             crc = lines[0].split(' ')[-1]
 
             # Check CRC
             if crc != self.CRC_YES:
-                raise RuntimeError('Invalid CRC: %r' % crc)
+                logger.error('Invalid CRC: %r' % crc)
+                return self.TEMP_INVALID_C
 
             temperature = int(lines[1].split(self.TEMPERATURE_ID)[1])
 

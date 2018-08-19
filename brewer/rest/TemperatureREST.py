@@ -12,21 +12,14 @@ class TemperatureREST:
 
     def getRestAPI(self):
         return (
-                # Get ambient temperature
+                # Get temperature reading
                 RestHandler(
-                    'temperature/get_ambient',
+                    'temperature/get',
                     lambda: (CODE_OK, MIME_JSON,
-                                {'success' : True, 'res' : self._brewer.temperatureSensor.getAmbientCelsius()})
+                                {'success' : True, 'res' : self._brewer.temperatureSensor.getTemperatureCelsius()})
                 ),
 
-                # Get liquid temperature
-                RestHandler(
-                    'temperature/get_liquid',
-                    lambda: (CODE_OK, MIME_JSON,
-                                {'success' : True, 'res' : self._brewer.temperatureSensor.getLiquidCelsius()})
-                ),
-
-                # Toggle tmeperature controller
+                # Toggle temperature controller
                 RestHandler(
                     'temperature/controller/toggle',
                     self.toggleControllerState
