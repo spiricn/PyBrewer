@@ -9,7 +9,9 @@ from hw.RelayControl import RelayControl
 from TemperatureControl import TemperatureControl
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from time import sleep
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Brewer():
     '''
@@ -24,7 +26,7 @@ class Brewer():
         self._config = config
 
         # Temperature sensor
-        self._temperatureSensor = TemperatureSensor()
+        self._temperatureSensor = TemperatureSensor(self._config.probeDeviceId)
 
         # Relay control
         self._relayControl = RelayControl()
@@ -108,11 +110,19 @@ class Brewer():
         '''
 
         status = {
-            'temp' : self._temperatureSensor.getTemperatureCelsius(),
             'relay_on' : self._relayControl.getState(),
             'temperature_controller_running' : self._temperatureControl.running,
             'temperature_controller_target_temp' : self._temperatureControl.targetTemperatureCelsius
         }
+
+        temperature = -1.0
+
+        try:
+            temperature = self._temperatureSensor.getTemperatureCelsius()
+        except Exception as e:
+            logger.error(e)
+
+        status['temp'] = temperature
 
         return (CODE_OK, MIME_JSON, status)
 

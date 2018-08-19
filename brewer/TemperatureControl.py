@@ -17,6 +17,9 @@ class TemperatureControl():
     # Sleep time between loops
     SLEEP_TIME_SEC = 2.0
 
+    # Sleep time if error happens
+    ERROR_SLEEP_TIME_SEC = 4.0
+
     def __init__(self, relayControl, temperatureSensor, targetTemperatureCelsius):
 
         # Relay controller
@@ -43,7 +46,18 @@ class TemperatureControl():
 
         while self._running:
             # Read the current temperature from probe
-            currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
+            try:
+                currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
+            except Exception as e:
+                logger.error(e)
+
+                logger.error('failure reading temperature value, shutting off')
+
+                # Shut the relayt off and wait before trying again
+                self._setRelayState(False)
+                sleep(self.ERROR_SLEEP_TIME_SEC)
+
+                continue
 
             if currentTemperatureCelsius >= self.targetTemperatureCelsius:
                 # Temperature above target, turn on cooling
@@ -59,7 +73,7 @@ class TemperatureControl():
 
                 self._setRelayState(False)
 
-            # Wait abit
+            # Wait a bit
             sleep(self.SLEEP_TIME_SEC)
 
         # Turn the relay off
