@@ -9,17 +9,9 @@ class TemperatureSensor:
     def __init__(self):
         pass
 
-    def getAmbientCelsius(self):
+    def getTemperatureCelsius(self):
         '''
-        Ambient temperature
-        '''
-
-        # TODO Implement
-        return random.randrange(20, 30)
-
-    def getLiquidCelsius(self):
-        '''
-        Liquid temperature
+        Read temperature
         '''
 
         # TODO Implement

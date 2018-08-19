@@ -26,9 +26,7 @@ function refreshStatu() {
     xhr.onload = function() {
         var status = JSON.parse(xhr.response);
         
-        document.getElementById("ambient_temperature").innerHTML = status.ambient_temp + " C";
-        
-        document.getElementById("liquid_temperature").innerHTML = status.liquid_temp + " C";
+        document.getElementById("temperature").innerHTML = status.temp + " C";
         
         document.getElementById("relay_state").innerHTML = (status.relay_on ? 'ON' : 'OFF');
         
@@ -95,13 +93,8 @@ refreshStatu()
     <tr><td colspan=2> <h2> Temperature </h2> </td></tr>
 
     <tr>
-        <td> Ambient temperature </td>
-        <td id="ambient_temperature"> </td>
-    </tr>
-    
-    <tr>
-        <td> Liquid temperature </td>
-        <td id="liquid_temperature"> </td>
+        <td> Probe temperature </td>
+        <td id="temperature"> </td>
     </tr>
     
     <tr><td></br></td></tr>

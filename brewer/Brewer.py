@@ -108,8 +108,7 @@ class Brewer():
         '''
 
         status = {
-            'liquid_temp' : self._temperatureSensor.getLiquidCelsius(),
-            'ambient_temp' : self._temperatureSensor.getAmbientCelsius(),
+            'temp' : self._temperatureSensor.getTemperatureCelsius(),
             'relay_on' : self._relayControl.getState(),
             'temperature_controller_running' : self._temperatureControl.running,
             'temperature_controller_target_temp' : self._temperatureControl.targetTemperatureCelsius

@@ -43,7 +43,7 @@ class TemperatureControl():
 
         while self._running:
             # Read the current temperature from probe
-            currentTemperatureCelsius = self._temperatureSensor.getLiquidCelsius()
+            currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
 
             if currentTemperatureCelsius >= self.targetTemperatureCelsius:
                 # Temperature above target, turn on cooling
