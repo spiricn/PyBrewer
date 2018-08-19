@@ -78,10 +78,6 @@ class Brewer():
         # Start the server
         self._server.start()
 
-        input()
-
-        self._server.stop()
-
     @property
     def temperatureSensor(self):
         '''
@@ -136,6 +132,13 @@ class Brewer():
 
         return brewer.__version__
 
+    def stop(self):
+        ''''
+        Stop the brewer
+        '''
+
+        self._running = False
+
     def wait(self):
         '''
         Wait until we're done processing requests
@@ -145,5 +148,8 @@ class Brewer():
         while self._running:
             sleep(1)
 
-        # TODO Correct return code
+        logger.debug('stopping')
+
+        self._server.stop()
+
         return 0
