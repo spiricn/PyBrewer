@@ -26,7 +26,8 @@ class TemperatureSensor:
 
     def __init__(self, deviceId):
         self._deviceId = deviceId
-        self._devicePath = os.path.join(self.ONE_WIRE_DEVICES_PATH, self._deviceId, self.ONE_WIRE_DEVICES_PATH)
+        self._devicePath = os.path.join(self.ONE_WIRE_DEVICES_PATH, self._deviceId, self.ONE_WIRE_DEVICE_FILE)
+        logger.debug('Using W1 device: %r @ %r' % (self._deviceId, self._devicePath))
 
     def getTemperatureCelsius(self):
         '''
