@@ -3,7 +3,6 @@ import logging
 from Config import Config
 from Brewer import Brewer
 import argparse
-import json
 import signal
 from brewer import __version__ as appVersion
 
@@ -35,7 +34,7 @@ def main():
     args = parser.parse_args()
 
     with open(args.config, 'r') as fileObj:
-        configDict = json.load(fileObj)
+        configDict = eval(fileObj.read())
 
     brewer = Brewer(Config(configDict))
 
