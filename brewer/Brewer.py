@@ -1,4 +1,5 @@
 import os
+import time
 from hw.TemperatureSensor import TemperatureSensor
 from ssc.http import HTTP
 from ssc.servlets.RestServlet import RestHandler
@@ -10,7 +11,9 @@ from TemperatureControl import TemperatureControl
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from time import sleep
 import logging
+from threading import Thread
 import brewer
+from brewer.PushNotifications import PushNotifications
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +36,30 @@ class Brewer():
         # Relay control
         self._relayControl = RelayControl(self._config.relayGpioPinNumber)
 
-        # Temperature control (uses sensor & relay contorl to achieve target temperature)
+        # Temperature control (uses sensor & relay control to achieve target temperature)
         self._temperatureControl = TemperatureControl(self._relayControl, self._temperatureSensor, self._config.targetTemperatureCelsius)
+
+        # Push notifications
+        self._pushNotifications = PushNotifications(self._config.pushoverUserToken, self._config.pushoverAppToken)
+
+    def _mainLoop(self):
+        '''
+        Main loop
+        '''
+
+        # Send push notifications every one hour
+        lastTemperature = TemperatureSensor.TEMP_INVALID_C
+
+        while self._running:
+            newTemperature = self._temperatureSensor.getTemperatureCelsius()
+
+            diffC = abs(newTemperature - lastTemperature)
+
+            self._pushNotifications.sendNotification('Temperature change', 'Current temperature: %.2f C (%.2f C %s)' % (newTemperature, diffC,
+                                                                                                                        'increase' if newTemperature > lastTemperature else 'decrease'))
+            lastTemperature = newTemperature
+
+            time.sleep(60 * 60)
 
     def start(self):
         if self._running:
@@ -77,6 +102,9 @@ class Brewer():
 
         # Start the server
         self._server.start()
+
+        self._mainThread = Thread(target=self._mainLoop())
+        self._mainThread.start()
 
     @property
     def temperatureSensor(self):
@@ -133,6 +161,8 @@ class Brewer():
 
         if self._temperatureControl.running:
             self._temperatureControl.setState(False)
+
+        self._mainThread.join()
 
     def wait(self):
         '''

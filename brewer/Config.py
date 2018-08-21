@@ -46,6 +46,22 @@ class Config:
 
         return self._getValue('RELAY_GPIO_PIN_NUMBER', -1)
 
+    @property
+    def pushoverUserToken(self):
+        '''
+        Pushover user token
+        '''
+
+        return self._getValue('PUSHOVER_USER_TOKEN', '')
+
+    @property
+    def pushoverAppToken(self):
+        '''
+        Pushover application token
+        '''
+
+        return self._getValue('PUSHOVER_APP_TOKEN', '')
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]
