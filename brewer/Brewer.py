@@ -14,6 +14,9 @@ from threading import Thread
 import brewer
 from brewer.PushNotifications import PushNotifications
 from rpi.IOPin import IOPin
+from rpi.SSD1306.Ssd1306 import Ssd1306
+import subprocess
+from threading import Lock
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +31,8 @@ class Brewer():
         self._running = False
 
         IOPin.init()
+
+        logging.getLogger("Adafruit_I2C").setLevel(logging.WARNING)
 
         # Configuration
         self._config = config
@@ -46,26 +51,49 @@ class Brewer():
 
         self._mainThread = None
 
+        self._display = Ssd1306()
+        self._display.renderer.clear()
+        self._display.renderer.display()
+
+        self._display.setButtonListener(Ssd1306.BUTTON_B, lambda button, pressed: self._onButtonBPressed() if pressed else None)
+
+        self._display.setButtonListener(Ssd1306.BUTTON_A, lambda button, pressed: self._updateDisplay())
+
+        self._display.setButtonListener(Ssd1306.BUTTON_CENTER,
+                                         lambda button, pressed:  self._onButtonCenterPressed() if pressed else None)
+
+        self._lock = Lock()
+
+    def _onButtonBPressed(self):
+        self._relayPin.setOutput(not self._relayPin.output)
+
+        self._updateDisplay()
+
+    def _onButtonCenterPressed(self):
+        self._temperatureControl.setState(not self._temperatureControl.running)
+
+        self._updateDisplay()
+
     def _mainLoop(self):
         '''
         Main loop
         '''
 
-        # Send push notifications every one hour
-        lastTemperature = TemperatureSensor.TEMP_INVALID_C
-
+        # Update display every 2 seconds
         while self._running:
-            newTemperature = self._temperatureSensor.getTemperatureCelsius()
+            self._updateDisplay()
 
-            diffC = abs(newTemperature - lastTemperature)
+            time.sleep(2)
 
-            self._pushNotifications.sendNotification('Temperature change', 'Current temperature: %.2f C (%.2f C %s)' % (newTemperature, diffC,
-                                                                                                                        'increase' if newTemperature > lastTemperature else 'decrease'))
-            lastTemperature = newTemperature
+        logger.debug('main loop stopped')
 
-            time.sleep(60 * 60)
+        # CLear display
+        self._display.renderer.clear()
+        self._display.renderer.display()
 
     def start(self):
+        self._updateDisplay()
+
         if self._running:
             raise RuntimeError('Already running')
 
@@ -134,6 +162,60 @@ class Brewer():
 
         return self._temperatureControl
 
+    def _updateDisplay(self):
+        with self._lock:
+            text = ''
+
+            if self._display.isButtonPressed(Ssd1306.BUTTON_A):
+                # If button A is pressed, display stats
+
+                # IP address
+                cmd = "hostname -I | cut -d\' \' -f1"
+                ip = subprocess.check_output(cmd, shell=True)
+
+                text += 'IP: %s\n' % ip.decode('utf-8')
+
+                # CPU load
+                cmd = "top -bn1 | grep load | awk '{printf \"CPU Load: %.2f\", $(NF-2)}'"
+                cpu = subprocess.check_output(cmd, shell=True)
+
+                text += cpu.decode('utf-8') + '\n'
+
+                # Memory
+                cmd = "free -m | awk 'NR==2{printf \"Mem: %s/%sMB %.2f%%\", $3,$2,$3*100/$2 }'"
+                memUsage = subprocess.check_output(cmd, shell=True)
+
+                text += memUsage.decode('utf-8')
+
+            else:
+                # Display status
+
+                # Temperature
+                text += 'Temperature: '
+
+                tempC = self._temperatureSensor.getTemperatureCelsius()
+
+                if tempC != TemperatureSensor.TEMP_INVALID_C:
+                    text += '%.2f C' % tempC
+                else:
+                    text += '?'
+
+                text += '\n'
+
+                # Relay on?
+                if self._relayPin.output:
+                    text += 'Relay ON'
+                text += '\n'
+
+                # Temperature control running?
+                if self._temperatureControl.running:
+                    text += 'Control: ON'
+
+            # Render text & update display
+            self._display.renderer.clear()
+            self._display.renderer.drawText((0, 0), text)
+            self._display.renderer.display()
+
     def _restStatus(self, **kwargs):
         '''
         Reads the status of everything
@@ -166,6 +248,7 @@ class Brewer():
         if self._temperatureControl.running:
             self._temperatureControl.setState(False)
 
+        # Stop main thread
         if self._mainThread:
             self._mainThread.join()
             self._mainThread = None
