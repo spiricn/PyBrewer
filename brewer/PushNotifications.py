@@ -49,6 +49,3 @@ class PushNotifications:
         response = conn.getresponse()
         if response.code != 200:
             logger.error('push notification failed: %d - %r' % (response.code, response.read()))
-
-
-PushNotifications('u6gsg6k4tcea282m7dbnnaxz8pir799', 'akz6ewidthrd4dquuwu6m1mr26m38p').sendNotification('title', 'poruka')

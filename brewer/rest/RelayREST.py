@@ -20,7 +20,7 @@ class RelayREST:
                 RestHandler(
                     'relay/get_state',
                     lambda: (CODE_OK, MIME_JSON,
-                                {'success' : True, 'res' : self._brewer.relayControl.getState()})
+                                {'success' : True, 'res' : self._brewer.relayPin.output})
                 ),
 
                 # Toggle relay state
@@ -38,6 +38,6 @@ class RelayREST:
         if self._brewer.temperatureControl.running:
             return (CODE_BAD_REQUEST, MIME_JSON, {'success' : False, 'message' : 'Automatic temperature controller running'})
 
-        self._brewer.relayControl.setState(not self._brewer.relayControl.getState())
+        self._brewer.relayPin.setOutput(not self._brewer.relayPin.output)
 
         return (CODE_OK, MIME_JSON, {'success' : True})

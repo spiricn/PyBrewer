@@ -1,7 +1,8 @@
 from threading import Thread
 from time import sleep
 import logging
-from brewer.hw.TemperatureSensor import TemperatureSensor
+
+from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +22,10 @@ class TemperatureControl():
     # Sleep time if error happens
     ERROR_SLEEP_TIME_SEC = 4.0
 
-    def __init__(self, relayControl, temperatureSensor, targetTemperatureCelsius):
+    def __init__(self, relayPin, temperatureSensor, targetTemperatureCelsius):
 
-        # Relay controller
-        self._relayControl = relayControl
+        # Relay controller pin
+        self._relayPin = relayPin
 
         # Temperature sensor
         self._temperatureSensor = temperatureSensor
@@ -48,10 +49,10 @@ class TemperatureControl():
         while self._running:
             # Read the current temperature from probe
             currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
-            
+
             if currentTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
                 logger.error('failure reading temperature value, shutting off')
-    
+
                 # Shut the relayt off and wait before trying again
                 self._setRelayState(False)
                 sleep(self.ERROR_SLEEP_TIME_SEC)
@@ -86,7 +87,7 @@ class TemperatureControl():
         '''
 
         logger.debug('setting relay state: ' + str(state))
-        self._relayControl.setState(state)
+        self._relayPin.setOutput(state)
 
     def setState(self, state):
         '''

@@ -1,12 +1,11 @@
 import os
 import time
-from hw.TemperatureSensor import TemperatureSensor
+from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 from ssc.http import HTTP
 from ssc.servlets.RestServlet import RestHandler
 from ssc.servlets.ServletContainer import ServletContainer
 from rest.TemperatureREST import TemperatureREST
 from rest.RelayREST import RelayREST
-from hw.RelayControl import RelayControl
 from TemperatureControl import TemperatureControl
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from time import sleep
@@ -14,6 +13,7 @@ import logging
 from threading import Thread
 import brewer
 from brewer.PushNotifications import PushNotifications
+from rpi.IOPin import IOPin
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,8 @@ class Brewer():
         # Is the brewer running or not
         self._running = False
 
+        IOPin.init()
+
         # Configuration
         self._config = config
 
@@ -34,13 +36,15 @@ class Brewer():
         self._temperatureSensor = TemperatureSensor(self._config.probeDeviceId)
 
         # Relay control
-        self._relayControl = RelayControl(self._config.relayGpioPinNumber)
+        self._relayPin = IOPin.createOutput(self._config.relayGpioPinNumber)
 
         # Temperature control (uses sensor & relay control to achieve target temperature)
-        self._temperatureControl = TemperatureControl(self._relayControl, self._temperatureSensor, self._config.targetTemperatureCelsius)
+        self._temperatureControl = TemperatureControl(self._relayPin, self._temperatureSensor, self._config.targetTemperatureCelsius)
 
         # Push notifications
         self._pushNotifications = PushNotifications(self._config.pushoverUserToken, self._config.pushoverAppToken)
+
+        self._mainThread = None
 
     def _mainLoop(self):
         '''
@@ -115,12 +119,12 @@ class Brewer():
         return self._temperatureSensor
 
     @property
-    def relayControl(self):
+    def relayPin(self):
         '''
-        Relay control
+        Relay control pin
         '''
 
-        return self._relayControl
+        return self._relayPin
 
     @property
     def temperatureControl(self):
@@ -136,7 +140,7 @@ class Brewer():
         '''
 
         status = {
-            'relay_on' : self._relayControl.getState(),
+            'relay_on' : self._relayPin.output,
             'temperature_controller_running' : self._temperatureControl.running,
             'temperature_controller_target_temp' : self._temperatureControl.targetTemperatureCelsius,
             'temp' : self._temperatureSensor.getTemperatureCelsius(),
@@ -162,7 +166,9 @@ class Brewer():
         if self._temperatureControl.running:
             self._temperatureControl.setState(False)
 
-        self._mainThread.join()
+        if self._mainThread:
+            self._mainThread.join()
+            self._mainThread = None
 
     def wait(self):
         '''
