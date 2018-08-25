@@ -67,6 +67,8 @@ class Brewer():
         self._displayEnabled = True
         self._lastActionTime = time.time()
 
+        self._displayStats = False
+
     def _onButtonBPressed(self):
         self._relayPin.setOutput(not self._relayPin.output)
 
@@ -75,6 +77,8 @@ class Brewer():
         self._updateDisplay()
 
     def _onButtonAPressed(self):
+        self._displayStats = not self._displayStats
+
         self._resetTimer()
 
         self._updateDisplay()
@@ -194,7 +198,7 @@ class Brewer():
 
             text = ''
 
-            if self._display.isButtonPressed(Ssd1306.BUTTON_A):
+            if self._displayStats:
                 # If button A is pressed, display stats
 
                 # IP address
