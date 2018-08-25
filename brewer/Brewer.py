@@ -57,19 +57,35 @@ class Brewer():
 
         self._display.setButtonListener(Ssd1306.BUTTON_B, lambda button, pressed: self._onButtonBPressed() if pressed else None)
 
-        self._display.setButtonListener(Ssd1306.BUTTON_A, lambda button, pressed: self._updateDisplay())
+        self._display.setButtonListener(Ssd1306.BUTTON_A, lambda button, pressed: self._onButtonAPressed() if pressed else None)
 
         self._display.setButtonListener(Ssd1306.BUTTON_CENTER,
                                          lambda button, pressed:  self._onButtonCenterPressed() if pressed else None)
 
         self._lock = Lock()
 
+        self._displayEnabled = True
+        self._lastActionTime = time.time()
+
     def _onButtonBPressed(self):
         self._relayPin.setOutput(not self._relayPin.output)
 
+        self._resetTimer()
+
         self._updateDisplay()
 
+    def _onButtonAPressed(self):
+        self._resetTimer()
+
+        self._updateDisplay()
+
+    def _resetTimer(self):
+        self._lastActionTime = time.time()
+        self._displayEnabled = True
+
     def _onButtonCenterPressed(self):
+        self._resetTimer()
+
         self._temperatureControl.setState(not self._temperatureControl.running)
 
         self._updateDisplay()
@@ -81,7 +97,14 @@ class Brewer():
 
         # Update display every 2 seconds
         while self._running:
-            self._updateDisplay()
+            currentTime = time.time()
+
+            if currentTime - self._lastActionTime >= 2 * 60:
+                if self._displayEnabled:
+                    self._displayEnabled = False
+                    self._updateDisplay()
+            else:
+                self._updateDisplay()
 
             time.sleep(2)
 
@@ -164,6 +187,11 @@ class Brewer():
 
     def _updateDisplay(self):
         with self._lock:
+            if not self._displayEnabled:
+                self._display.renderer.clear()
+                self._display.renderer.display()
+                return
+
             text = ''
 
             if self._display.isButtonPressed(Ssd1306.BUTTON_A):
