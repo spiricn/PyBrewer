@@ -62,6 +62,14 @@ class Config:
 
         return self._getValue('PUSHOVER_APP_TOKEN', '')
 
+    @property
+    def displayTimeout(self):
+        '''
+        Time until display turns off
+        '''
+
+        return self._getValue('DISPLAY_TIMEOUT', 2 * 60.0)
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]

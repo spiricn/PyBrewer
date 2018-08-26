@@ -14,9 +14,8 @@ from threading import Thread
 import brewer
 from brewer.PushNotifications import PushNotifications
 from rpi.IOPin import IOPin
-from rpi.SSD1306.Ssd1306 import Ssd1306
-import subprocess
-from threading import Lock
+
+from brewer.DisplayHandler import DisplayHandler
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +24,8 @@ class Brewer():
     '''
     Main brewer module
     '''
+
+    EVENT_HEARTBEAT = range(1)
 
     def __init__(self, config):
         # Is the brewer running or not
@@ -51,82 +52,63 @@ class Brewer():
 
         self._mainThread = None
 
-        self._display = Ssd1306()
-        self._display.renderer.clear()
-        self._display.renderer.display()
+        # Module classes
+        modules = (DisplayHandler,
+                   )
 
-        self._display.setButtonListener(Ssd1306.BUTTON_B, lambda button, pressed: self._onButtonBPressed() if pressed else None)
+        self._modules = []
 
-        self._display.setButtonListener(Ssd1306.BUTTON_A, lambda button, pressed: self._onButtonAPressed() if pressed else None)
+        # Instantiate modules
+        for module in modules:
+            self._modules.append(module(self))
 
-        self._display.setButtonListener(Ssd1306.BUTTON_CENTER,
-                                         lambda button, pressed:  self._onButtonCenterPressed() if pressed else None)
+    @property
+    def config(self):
+        '''
+        Configuration
+        '''
 
-        self._lock = Lock()
-
-        self._displayEnabled = True
-        self._lastActionTime = time.time()
-
-        self._displayStats = False
-
-    def _onButtonBPressed(self):
-        self._relayPin.setOutput(not self._relayPin.output)
-
-        self._resetTimer()
-
-        self._updateDisplay()
-
-    def _onButtonAPressed(self):
-        self._displayStats = not self._displayStats
-
-        self._resetTimer()
-
-        self._updateDisplay()
-
-    def _resetTimer(self):
-        self._lastActionTime = time.time()
-        self._displayEnabled = True
-
-    def _onButtonCenterPressed(self):
-        self._resetTimer()
-
-        self._temperatureControl.setState(not self._temperatureControl.running)
-
-        self._updateDisplay()
+        return self._config
 
     def _mainLoop(self):
         '''
         Main loop
         '''
 
+        logger.debug('main loop started')
+
+        # Start modules
+        for module in self._modules:
+            module.onStart()
+
         # Update display every 2 seconds
+        lastTime = time.time()
+
         while self._running:
             currentTime = time.time()
 
-            if currentTime - self._lastActionTime >= 2 * 60:
-                if self._displayEnabled:
-                    self._displayEnabled = False
-                    self._updateDisplay()
-            else:
-                self._updateDisplay()
+            elapsedTime = currentTime - lastTime
+
+            lastTime = currentTime
+
+            # Update modules
+            for module in self._modules:
+                module.update(elapsedTime)
 
             time.sleep(2)
 
         logger.debug('main loop stopped')
 
-        # CLear display
-        self._display.renderer.clear()
-        self._display.renderer.display()
+        # Stop modules
+        for module in self._modules:
+                module.onStop()
 
     def start(self):
-        self._updateDisplay()
-
         if self._running:
             raise RuntimeError('Already running')
 
         self._running = True
 
-        # Create HTTP server
         self._server = ServletContainer('',
                                      self._config.port,
                                      self._config.root,
@@ -188,65 +170,6 @@ class Brewer():
         '''
 
         return self._temperatureControl
-
-    def _updateDisplay(self):
-        with self._lock:
-            if not self._displayEnabled:
-                self._display.renderer.clear()
-                self._display.renderer.display()
-                return
-
-            text = ''
-
-            if self._displayStats:
-                # If button A is pressed, display stats
-
-                # IP address
-                cmd = "hostname -I | cut -d\' \' -f1"
-                ip = subprocess.check_output(cmd, shell=True)
-
-                text += 'IP: %s\n' % ip.decode('utf-8')
-
-                # CPU load
-                cmd = "top -bn1 | grep load | awk '{printf \"CPU Load: %.2f\", $(NF-2)}'"
-                cpu = subprocess.check_output(cmd, shell=True)
-
-                text += cpu.decode('utf-8') + '\n'
-
-                # Memory
-                cmd = "free -m | awk 'NR==2{printf \"Mem: %s/%sMB %.2f%%\", $3,$2,$3*100/$2 }'"
-                memUsage = subprocess.check_output(cmd, shell=True)
-
-                text += memUsage.decode('utf-8')
-
-            else:
-                # Display status
-
-                # Temperature
-                text += 'Temperature: '
-
-                tempC = self._temperatureSensor.getTemperatureCelsius()
-
-                if tempC != TemperatureSensor.TEMP_INVALID_C:
-                    text += '%.2f C' % tempC
-                else:
-                    text += '?'
-
-                text += '\n'
-
-                # Relay on?
-                if self._relayPin.output:
-                    text += 'Relay ON'
-                text += '\n'
-
-                # Temperature control running?
-                if self._temperatureControl.running:
-                    text += 'Control: ON'
-
-            # Render text & update display
-            self._display.renderer.clear()
-            self._display.renderer.drawText((0, 0), text)
-            self._display.renderer.display()
 
     def _restStatus(self, **kwargs):
         '''
