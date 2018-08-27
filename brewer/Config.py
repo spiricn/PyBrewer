@@ -70,6 +70,14 @@ class Config:
 
         return self._getValue('DISPLAY_TIMEOUT', 2 * 60.0)
 
+    @property
+    def historyPath(self):
+        '''
+        Directory where history will be recorded
+        '''
+
+        return self._getValue('HISTORY_PATH', 'history')
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]

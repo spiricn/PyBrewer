@@ -16,6 +16,7 @@ from brewer.PushNotifications import PushNotifications
 from rpi.IOPin import IOPin
 
 from brewer.DisplayHandler import DisplayHandler
+from brewer.HistoryHandler import HistoryHandler
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,7 @@ class Brewer():
 
         # Module classes
         modules = (DisplayHandler,
+                   HistoryHandler
                    )
 
         self._modules = []
