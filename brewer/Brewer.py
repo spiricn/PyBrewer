@@ -64,6 +64,13 @@ class Brewer():
         for module in modules:
             self._modules.append(module(self))
 
+    def getModule(self, clazz):
+        for module in self._modules:
+            if isinstance(module, clazz):
+                return module
+
+        return None
+
     @property
     def config(self):
         '''

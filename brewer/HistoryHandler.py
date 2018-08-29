@@ -4,6 +4,7 @@ import datetime
 import json
 import logging
 import time
+from tmp.brewer.hw.TemperatureSensor import TemperatureSensor
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class RecordDate:
     def readSamples(self):
         with open(self._path, 'r') as fileObj:
             try:
-                return json.load(fileObj)
+                return [(time, temp) for time, temp in json.load(fileObj) if temp != TemperatureSensor.TEMP_INVALID_C]
             except Exception as e:
                 logger.error('error loading samples from %r: %r' % (str(e), self._path))
 
@@ -26,6 +27,14 @@ class RecordDate:
     @property
     def date(self):
         return self._date
+
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def name(self):
+        return os.path.basename(os.path.dirname(self.path))
 
     def __str__(self):
         return '{RecordDate ' + str(self._date) + ' / ' + self._path + '}'
@@ -100,6 +109,13 @@ class HistoryHandler(Handler):
                 records.append(self._createRecord(fullPath))
 
         return records
+
+    def findRecord(self, name):
+        for record in self.getRecords():
+            if record.name == name:
+                return record
+
+        return None
 
     def _createRecord(self, fullPath):
         fullPath = os.path.normpath(os.path.abspath(fullPath))

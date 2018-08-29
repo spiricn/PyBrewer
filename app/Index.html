@@ -1,3 +1,10 @@
+<%
+
+from brewer.HistoryHandler import HistoryHandler
+
+import os
+%>
+
 <html>
 
 <head>
@@ -150,6 +157,23 @@ refreshStatus()
     </tr>
 
 </table>
+
+
+<table>
+
+<tr><th>History</th></tr>
+%for entry in Brewer.getModule(HistoryHandler).getRecords():
+
+<tr>
+<td> 
+
+<a href="/history?entry=${os.path.basename(os.path.dirname(entry.path))}"> ${entry.date} </a> </td>
+</tr>
+
+% endfor
+
+</table> 
+
 
 </body>
 

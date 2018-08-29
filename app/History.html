@@ -1,0 +1,85 @@
+<%
+
+from brewer.HistoryHandler import HistoryHandler
+
+samples = Brewer.getModule(HistoryHandler).findRecord(request.params['entry'][0]).readSamples()
+
+time = [time for time,temperature in samples]
+temperature = [temperature for time,temperature in samples]
+
+maxTemp = max(temperature)
+
+
+
+%>
+
+<html>
+
+<head>
+
+<script src="/js/Chart.js"></script>
+
+</head>
+
+<body>
+
+<canvas id="myChart" width="400" height="400"></canvas>
+
+</body>
+
+
+
+<script>
+
+var time = ${time};
+
+var temperature = ${temperature};
+
+var data = []
+
+for(var i=0; i<time.length; i++){
+    data.push({x: new Date(time[i]*1000), y: temperature[i]});
+}
+
+new Chart(document.getElementById("myChart"), {
+  type: 'line',
+  data: {
+    datasets: [
+        { 
+            data: data,
+            label: "Temperature",
+            borderColor: "#3e95cd",
+            fill: false,
+            showLine: true,
+            pointRadius: 0,
+            cubicInterpolationMode: 'cubic'
+        },
+        
+    ]
+  },
+  options: {
+    title: {
+      display: true,
+      text: 'Temperature history C'
+    },
+    scales: {
+        yAxes: [{
+            display: true,
+            ticks: {
+                min: ${min(temperature) - 3},
+                max: ${max(temperature) + 3}
+            }
+        }],
+        xAxes: [{
+            display: true,
+            type: 'time'
+        }]
+    }
+  }
+});
+</script>
+
+
+
+
+</html>

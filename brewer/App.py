@@ -49,7 +49,7 @@ def main():
 
 if __name__ == '__main__':
     # Register signal handler (to stop on CTRL+C)
-    signal.signal(signal.SIGINT, signalHandler)
+#     signal.signal(signal.SIGINT, signalHandler)
 
     sys.exit(main())
 
