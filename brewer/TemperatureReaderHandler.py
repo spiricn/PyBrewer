@@ -45,5 +45,8 @@ class TemperatureReaderHandler(Handler):
                 self._cachedTemp = self._temperatureSensor.getTemperatureCelsius()
                 self._lastRead = currentTime
 
+                if self._cachedTemp == TemperatureSensor.TEMP_INVALID_C:
+                    self.brewer.logError(__name__, 'temperature read failure')
+
             return self._cachedTemp
 
