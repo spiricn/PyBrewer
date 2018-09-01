@@ -71,12 +71,12 @@ class Config:
         return self._getValue('DISPLAY_TIMEOUT', 2 * 60.0)
 
     @property
-    def historyPath(self):
+    def databasePath(self):
         '''
-        Directory where history will be recorded
+        Database path
         '''
 
-        return self._getValue('HISTORY_PATH', 'history')
+        return self._getValue('DATABASE_PATH', 'pybrewer.db')
 
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:

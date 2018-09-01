@@ -14,6 +14,8 @@ from threading import Thread
 import brewer
 from brewer.PushNotifications import PushNotifications
 from rpi.IOPin import IOPin
+import sqlite3
+from contextlib import closing
 
 from brewer.DisplayHandler import DisplayHandler
 from brewer.HistoryHandler import HistoryHandler
@@ -63,6 +65,10 @@ class Brewer():
         # Instantiate modules
         for module in modules:
             self._modules.append(module(self))
+
+    @property
+    def database(self):
+        return closing(sqlite3.connect(self.config.databasePath))
 
     def getModule(self, clazz):
         for module in self._modules:

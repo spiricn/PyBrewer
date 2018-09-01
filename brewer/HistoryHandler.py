@@ -1,5 +1,4 @@
 from brewer.Handler import Handler
-import sqlite3
 import datetime
 import logging
 from contextlib import closing
@@ -15,12 +14,10 @@ class HistoryHandler(Handler):
     DATE_FORMAT = '%Y-%m-%d'
     TIME_FORMAT = '%H:%M:%S'
 
-    DATABASE = 'history.db'
-
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
 
-        self._elapsedSec = 0
+        self._elapsedSec = self.SAMPLE_PERIOD_SEC
 
         self._prevPath = None
 
@@ -44,7 +41,7 @@ class HistoryHandler(Handler):
                   tempC)
 
         # Insert into database
-        with self.database as conn:
+        with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
                     cursor.execute('INSERT INTO samples VALUES (?,?,?)', sample)
@@ -52,23 +49,19 @@ class HistoryHandler(Handler):
         # Reset time
         self._elapsedSec = 0
 
-    @property
-    def database(self):
-        return closing(sqlite3.connect(self.DATABASE))
-
     def getRecords(self):
-        with self.database as conn:
+        with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
                 return [i[0] for i in cursor.execute('SELECT distinct(date) from samples').fetchall()]
 
     def getSamples(self, date):
-        with self.database as conn:
+        with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
                 return cursor.execute('SELECT date, time, temperature FROM samples WHERE date=? ORDER BY time ', (date,)).fetchall()
 
     def onStart(self):
         # Create tables
-        with self.database as conn:
+        with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
                     cursor.execute('''CREATE TABLE IF NOT EXISTS samples
