@@ -43,7 +43,24 @@ class LogHandler(Handler):
             with conn:
                 with closing(conn.cursor()) as cursor:
 
-                    return [(level, module, message, datetime.datetime.strptime(time, self.TIME_FORMAT)) for level, module, message, time in cursor.execute('''SELECT * FROM ''' + self.TABLE_LOGS).fetchall()]
+                    return [(level, module, message, datetime.datetime.strptime(time, self.TIME_FORMAT))
+                             for level, module, message, time in cursor.execute('''SELECT * FROM ''' + self.TABLE_LOGS + ''' ORDER BY time DESC''').fetchall()]
+
+    def getNumErrors(self):
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    return cursor.execute('SELECT COUNT(*) FROM ' + self.TABLE_LOGS + ' WHERE level IN (?,?)', (logging.ERROR, logging.CRITICAL)).fetchone()[0]
+
+    def getLatestError(self):
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    res = cursor.execute('SELECT time from ' + self.TABLE_LOGS + ' WHERE level IN (?,?) ORDER BY time DESC LIMIT 1', (logging.ERROR, logging.CRITICAL)).fetchone()
+                    if not res:
+                        return None
+
+                    return datetime.datetime.strptime(res[0], self.TIME_FORMAT)
 
     def onStart(self):
         with self.brewer.database as conn:

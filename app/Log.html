@@ -69,6 +69,20 @@ function clearLogs() {
 
 <button  onClick="clearLogs()"> Clear logs </button>
 
+<%
+
+import datetime
+ 
+latestError = Brewer.getModule(LogHandler).getLatestError()
+if latestError:
+    latestError = datetime.datetime.now() - latestError
+
+%>
+
+% if Brewer.getModule(LogHandler).getLatestError():
+<p style="color:#ff0000"> Error detected: ${Brewer.getModule(LogHandler).getNumErrors()} (latest ${latestError} ago) </p>
+% endif
+
 <table border="1">
 <tr>
 <th> Level </th> <th> Module </th> <th> Message </th> <th> Time </th>
