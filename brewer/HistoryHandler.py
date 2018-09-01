@@ -2,6 +2,7 @@ from brewer.Handler import Handler
 import datetime
 import logging
 from contextlib import closing
+from tmp.brewer.hw.TemperatureSensor import TemperatureSensor
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,8 @@ class HistoryHandler(Handler):
     def getSamples(self, date):
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                return cursor.execute('SELECT date, time, temperature FROM samples WHERE date=? ORDER BY time ', (date,)).fetchall()
+                return [(date, time, temperature) for date, time, temperature in cursor.execute('SELECT date, time, temperature FROM samples WHERE date=? ORDER BY time ', (date,)).fetchall()
+                           if temperature != TemperatureSensor.TEMP_INVALID_C]
 
     def onStart(self):
         # Create tables
