@@ -165,14 +165,14 @@ refreshStatus()
 %for entry in Brewer.getModule(HistoryHandler).getRecords():
 
 <tr>
-<td> 
+<td>
 
-<a href="/history?entry=${os.path.basename(os.path.dirname(entry.path))}"> ${entry.date} </a> </td>
+<a href="/history?entry=${entry}"> ${entry} </a> </td>
 </tr>
 
 % endfor
 
-</table> 
+</table>
 
 
 </body>

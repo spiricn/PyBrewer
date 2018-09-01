@@ -1,55 +1,24 @@
 from brewer.Handler import Handler
-import os
+import sqlite3
 import datetime
-import json
 import logging
-import time
-from tmp.brewer.hw.TemperatureSensor import TemperatureSensor
+from contextlib import closing
 
 logger = logging.getLogger(__name__)
-
-
-class RecordDate:
-
-    def __init__(self, date, path):
-        self._date = date
-        self._path = path
-
-    def readSamples(self):
-        with open(self._path, 'r') as fileObj:
-            try:
-                return [(time, temp) for time, temp in json.load(fileObj) if temp != TemperatureSensor.TEMP_INVALID_C]
-            except Exception as e:
-                logger.error('error loading samples from %r: %r' % (str(e), self._path))
-
-        return None
-
-    @property
-    def date(self):
-        return self._date
-
-    @property
-    def path(self):
-        return self._path
-
-    @property
-    def name(self):
-        return os.path.basename(os.path.dirname(self.path))
-
-    def __str__(self):
-        return '{RecordDate ' + str(self._date) + ' / ' + self._path + '}'
 
 
 class HistoryHandler(Handler):
     SAMPLE_PERIOD_SEC = 30
     RECORD_PREFIX = 'record_'
     RECORD_FILE_NAME = 'temperature_history.json'
-    DATE_FORMAT = '%d_%m_%Y'
+
+    DATE_FORMAT = '%Y-%m-%d'
+    TIME_FORMAT = '%H:%M:%S'
+
+    DATABASE = 'history.db'
 
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
-
-        self._samples = []
 
         self._elapsedSec = 0
 
@@ -66,68 +35,44 @@ class HistoryHandler(Handler):
         # Get current temperature reading
         tempC = self.brewer.temperatureSensor.getTemperatureCelsius()
 
+        # Get current time
+        currentDate = datetime.datetime.now()
+
         # Create a temperature/seconds sample
-        self._samples.append((int(time.time()), tempC))
+        sample = (currentDate.strftime(self.DATE_FORMAT),
+                  currentDate.strftime(self.TIME_FORMAT),
+                  tempC)
 
-        # File path
-        filePath = os.path.join(self.brewer.config.historyPath, self.RECORD_PREFIX + datetime.date.today().strftime(self.DATE_FORMAT), self.RECORD_FILE_NAME)
-
-        if filePath != self._prevPath:
-
-            if os.path.isfile(filePath):
-                record = self._createRecord(filePath)
-                self._samples = record.readSamples()
-
-            self._prevPath = filePath
-
-        fileDir = os.path.dirname(filePath)
-
-        # Create dir if it doesn't exist
-        if not os.path.isdir(fileDir):
-            os.makedirs(fileDir)
-
-        # Dump the samples
-        with open(filePath, 'w') as fileObj:
-            json.dump(self._samples, fileObj)
+        # Insert into database
+        with self.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('INSERT INTO samples VALUES (?,?,?)', sample)
 
         # Reset time
         self._elapsedSec = 0
 
+    @property
+    def database(self):
+        return closing(sqlite3.connect(self.DATABASE))
+
     def getRecords(self):
-        records = []
+        with self.database as conn:
+            with closing(conn.cursor()) as cursor:
+                return [i[0] for i in cursor.execute('SELECT distinct(date) from samples').fetchall()]
 
-        for fileName in os.listdir(self.brewer.config.historyPath):
-            fullDirPath = os.path.join(self.brewer.config.historyPath, fileName)
-
-            if fileName.startswith(self.RECORD_PREFIX):
-                fullPath = os.path.join(fullDirPath, self.RECORD_FILE_NAME)
-
-                if not os.path.isfile(fullPath):
-                    logger.warning('missing record file: %r' % fullPath)
-                    continue
-
-                records.append(self._createRecord(fullPath))
-
-        return records
-
-    def findRecord(self, name):
-        for record in self.getRecords():
-            if record.name == name:
-                return record
-
-        return None
-
-    def _createRecord(self, fullPath):
-        fullPath = os.path.normpath(os.path.abspath(fullPath))
-
-        # Parse date
-        date = datetime.datetime.strptime(fullPath.split(self.RECORD_PREFIX)[1].split('/')[0],
-                                        self.DATE_FORMAT)
-
-        return RecordDate(date, fullPath)
+    def getSamples(self, date):
+        with self.database as conn:
+            with closing(conn.cursor()) as cursor:
+                return cursor.execute('SELECT date, time, temperature FROM samples WHERE date=? ORDER BY time ', (date,)).fetchall()
 
     def onStart(self):
-        pass
+        # Create tables
+        with self.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('''CREATE TABLE IF NOT EXISTS samples
+                            (date text, time text, temperature real)''')
 
     def onStop(self):
         pass

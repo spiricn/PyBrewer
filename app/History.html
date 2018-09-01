@@ -2,10 +2,10 @@
 
 from brewer.HistoryHandler import HistoryHandler
 
-samples = Brewer.getModule(HistoryHandler).findRecord(request.params['entry'][0]).readSamples()
+samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
 
-time = [time for time,temperature in samples]
-temperature = [temperature for time,temperature in samples]
+time = [date + 'T' + time for date, time,temperature in samples]
+temperature = [temperature for date, time,temperature in samples]
 
 maxTemp = max(temperature)
 
@@ -38,14 +38,14 @@ var temperature = ${temperature};
 var data = []
 
 for(var i=0; i<time.length; i++){
-    data.push({x: new Date(time[i]*1000), y: temperature[i]});
+    data.push({x: new Date(time[i]), y: temperature[i]});
 }
 
 new Chart(document.getElementById("myChart"), {
   type: 'line',
   data: {
     datasets: [
-        { 
+        {
             data: data,
             label: "Temperature",
             borderColor: "#3e95cd",
@@ -54,7 +54,7 @@ new Chart(document.getElementById("myChart"), {
             pointRadius: 0,
             cubicInterpolationMode: 'cubic'
         },
-        
+
     ]
   },
   options: {
