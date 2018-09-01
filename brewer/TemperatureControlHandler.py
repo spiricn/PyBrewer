@@ -44,26 +44,36 @@ class TemperatureControlHandler(Handler):
         Start the controller
         '''
 
-        self.brewer.getModule(LogHandler).log(logging.INFO,
-                                              __name__,
-                                              'control started: %.2f C' % self.targetTemperatureCelsius
+        self.brewer.logInfo(__name__,
+                            'control started: %.2f C' % self.targetTemperatureCelsius
         )
 
         # Turn the relay off
         self._setRelayState(False)
+
+        errorLogged = False
 
         while self._running:
             # Read the current temperature from probe
             currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
 
             if currentTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
-                logger.error('failure reading temperature value, shutting off')
 
-                # Shut the relay off and wait before trying again
-                self._setRelayState(False)
-                sleep(self.ERROR_SLEEP_TIME_SEC)
+                if not errorLogged:
+                    self.brewer.logError(__name__, 'failure reading temperature value, shutting off')
 
-                continue
+                    # Shut the relay off and wait before trying again
+                    self._setRelayState(False)
+                    sleep(self.ERROR_SLEEP_TIME_SEC)
+
+                    errorLogged = True
+
+                    continue
+
+            if errorLogged:
+                self.brewer.logInfo(__name__, 'resuming')
+
+            errorLogged = False
 
             if currentTemperatureCelsius >= self.targetTemperatureCelsius:
                 # Temperature above target, turn on cooling
@@ -85,9 +95,8 @@ class TemperatureControlHandler(Handler):
         # Turn the relay off
         self._setRelayState(False)
 
-        self.brewer.getModule(LogHandler).log(logging.INFO,
-                                              __name__,
-                                              'control stopped'
+        self.brewer.logInfo(__name__,
+                            'control stopped'
         )
 
     def _setRelayState(self, state):

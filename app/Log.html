@@ -19,8 +19,32 @@ LOG_LEVEL_MAP = {
 
 <%include file="Header.html"/>
 
-<script>
+<style>
 
+tr.ERROR {
+    background-color:red;
+    color:white;
+}
+
+tr.CRITICAL{
+    background-color:red;
+    color:white;
+}
+
+tr.WARNING {
+    background-color:yellow;
+    color:white;
+}
+
+tr.DEBUG {
+    color:white;
+}
+
+
+</style>
+
+
+<script>
 
 function clearLogs() {
     var xhr = new XMLHttpRequest();
@@ -52,7 +76,7 @@ function clearLogs() {
 
 %for level, module, message, time in Brewer.getModule(LogHandler).getLogs():
 
-<tr>
+<tr class="${LOG_LEVEL_MAP[level]}">
 
 <td> ${LOG_LEVEL_MAP[level]} </td>
 <td> ${module} </td>

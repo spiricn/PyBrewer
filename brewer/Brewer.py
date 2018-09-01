@@ -190,6 +190,21 @@ class Brewer():
 
         return self.getModule(TemperatureControlHandler)
 
+    def logInfo(self, module, message):
+        self.log(logging.INFO, module, message)
+
+    def logDebug(self, module, message):
+        self.log(logging.DEBUG, module, message)
+
+    def logWarning(self, module, message):
+        self.log(logging.WARN, module, message)
+
+    def logError(self, module, message):
+        self.log(logging.ERROR, module, message)
+
+    def log(self, level, module, message):
+        self.getModule(LogHandler).log(level, module, message)
+
     def _restStatus(self, **kwargs):
         '''
         Reads the status of everything
