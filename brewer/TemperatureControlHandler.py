@@ -1,7 +1,6 @@
 from threading import Thread
 from time import sleep
 import logging
-from brewer.LogHandler import LogHandler
 
 from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 from brewer.Handler import Handler
@@ -27,6 +26,7 @@ class TemperatureControlHandler(Handler):
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
 
+    def onStart(self):
         # Relay controller pin
         self._relayPin = self.brewer.relayPin
 

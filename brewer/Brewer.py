@@ -1,6 +1,5 @@
 import os
 import time
-from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 from ssc.http import HTTP
 from ssc.servlets.RestServlet import RestHandler
 from ssc.servlets.ServletContainer import ServletContainer
@@ -22,6 +21,7 @@ from brewer.HistoryHandler import HistoryHandler
 from brewer.LogHandler import LogHandler
 from brewer.rest.LogREST import LogREST
 from brewer.TemperatureControlHandler import TemperatureControlHandler
+from brewer.TemperatureReaderHandler import TemperatureReaderHandler
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +44,6 @@ class Brewer():
         # Configuration
         self._config = config
 
-        # Temperature sensor
-        self._temperatureSensor = TemperatureSensor(self._config.probeDeviceId)
-
         # Relay control
         self._relayPin = IOPin.createOutput(self._config.relayGpioPinNumber)
 
@@ -60,7 +57,8 @@ class Brewer():
                     LogHandler,
                     DisplayHandler,
                     HistoryHandler,
-                    TemperatureControlHandler
+                    TemperatureControlHandler,
+                    TemperatureReaderHandler
         )
 
         self._modules = []
@@ -172,7 +170,7 @@ class Brewer():
         Temperature sensor
         '''
 
-        return self._temperatureSensor
+        return self.getModule(TemperatureReaderHandler)
 
     @property
     def relayPin(self):
@@ -214,7 +212,7 @@ class Brewer():
             'relay_on' : self._relayPin.output,
             'temperature_controller_running' : self.temperatureControl.running,
             'temperature_controller_target_temp' : self.temperatureControl.targetTemperatureCelsius,
-            'temp' : self._temperatureSensor.getTemperatureCelsius(),
+            'temp' : self.temperatureSensor.getTemperatureCelsius(),
         }
 
         return (CODE_OK, MIME_JSON, status)
