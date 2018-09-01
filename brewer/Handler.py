@@ -1,4 +1,5 @@
 class Handler:
+
     def __init__(self, brewer):
         self._brewer = brewer
 
@@ -7,10 +8,11 @@ class Handler:
         return self._brewer
 
     def update(self, elapsedTime):
-        raise NotImplementedError('Not implemented')
+        pass
 
     def onStart(self):
-        raise NotImplementedError('Not implemented')
+        pass
 
     def onStop(self):
-        raise NotImplementedError('Not implemented')
+        pass
+

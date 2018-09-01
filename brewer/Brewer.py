@@ -21,6 +21,7 @@ from brewer.DisplayHandler import DisplayHandler
 from brewer.HistoryHandler import HistoryHandler
 from brewer.LogHandler import LogHandler
 from brewer.rest.LogREST import LogREST
+from brewer.TemperatureControlHandler import TemperatureControlHandler
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +50,6 @@ class Brewer():
         # Relay control
         self._relayPin = IOPin.createOutput(self._config.relayGpioPinNumber)
 
-        # Temperature control (uses sensor & relay control to achieve target temperature)
-        self._temperatureControl = TemperatureControl(self._relayPin, self._temperatureSensor, self._config.targetTemperatureCelsius)
-
         # Push notifications
         self._pushNotifications = PushNotifications(self._config.pushoverUserToken, self._config.pushoverAppToken)
 
@@ -62,6 +60,7 @@ class Brewer():
                     LogHandler,
                     DisplayHandler,
                     HistoryHandler,
+                    TemperatureControlHandler
         )
 
         self._modules = []
@@ -189,7 +188,7 @@ class Brewer():
         Temperature controller
         '''
 
-        return self._temperatureControl
+        return self.getModule(TemperatureControlHandler)
 
     def _restStatus(self, **kwargs):
         '''
@@ -198,8 +197,8 @@ class Brewer():
 
         status = {
             'relay_on' : self._relayPin.output,
-            'temperature_controller_running' : self._temperatureControl.running,
-            'temperature_controller_target_temp' : self._temperatureControl.targetTemperatureCelsius,
+            'temperature_controller_running' : self.temperatureControl.running,
+            'temperature_controller_target_temp' : self.temperatureControl.targetTemperatureCelsius,
             'temp' : self._temperatureSensor.getTemperatureCelsius(),
         }
 
@@ -220,8 +219,8 @@ class Brewer():
 
         self._running = False
 
-        if self._temperatureControl.running:
-            self._temperatureControl.setState(False)
+        if self.temperatureControl.running:
+            self.temperatureControl.setState(False)
 
         # Stop main thread
         if self._mainThread:

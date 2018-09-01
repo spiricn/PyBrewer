@@ -1,13 +1,15 @@
 from threading import Thread
 from time import sleep
 import logging
+from brewer.LogHandler import LogHandler
 
 from rpi.DS18B20.TemperatureSensor import TemperatureSensor
+from brewer.Handler import Handler
 
 logger = logging.getLogger(__name__)
 
 
-class TemperatureControl():
+class TemperatureControlHandler(Handler):
     '''
     Reads temperatures from the sensors, and turns the relay on or off
     to control the temperature
@@ -22,26 +24,30 @@ class TemperatureControl():
     # Sleep time if error happens
     ERROR_SLEEP_TIME_SEC = 4.0
 
-    def __init__(self, relayPin, temperatureSensor, targetTemperatureCelsius):
+    def __init__(self, brewer):
+        Handler.__init__(self, brewer)
 
         # Relay controller pin
-        self._relayPin = relayPin
+        self._relayPin = self.brewer.relayPin
 
         # Temperature sensor
-        self._temperatureSensor = temperatureSensor
+        self._temperatureSensor = self.brewer.temperatureSensor
 
         # Controller running or not
         self._running = False
 
         # Target temperature we're trying to achieve
-        self.targetTemperatureCelsius = targetTemperatureCelsius
+        self.targetTemperatureCelsius = self.brewer.config.targetTemperatureCelsius
 
     def _run(self):
         '''
         Start the controller
         '''
 
-        logger.debug('start control: %.2f' % self.targetTemperatureCelsius)
+        self.brewer.getModule(LogHandler).log(logging.INFO,
+                                              __name__,
+                                              'control started: %.2f C' % self.targetTemperatureCelsius
+        )
 
         # Turn the relay off
         self._setRelayState(False)
@@ -53,7 +59,7 @@ class TemperatureControl():
             if currentTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
                 logger.error('failure reading temperature value, shutting off')
 
-                # Shut the relayt off and wait before trying again
+                # Shut the relay off and wait before trying again
                 self._setRelayState(False)
                 sleep(self.ERROR_SLEEP_TIME_SEC)
 
@@ -79,7 +85,10 @@ class TemperatureControl():
         # Turn the relay off
         self._setRelayState(False)
 
-        logger.debug('stop control')
+        self.brewer.getModule(LogHandler).log(logging.INFO,
+                                              __name__,
+                                              'control stopped'
+        )
 
     def _setRelayState(self, state):
         '''
