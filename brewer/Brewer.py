@@ -19,6 +19,8 @@ from contextlib import closing
 
 from brewer.DisplayHandler import DisplayHandler
 from brewer.HistoryHandler import HistoryHandler
+from brewer.LogHandler import LogHandler
+from brewer.rest.LogREST import LogREST
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +58,11 @@ class Brewer():
         self._mainThread = None
 
         # Module classes
-        modules = (DisplayHandler,
-                   HistoryHandler
-                   )
+        modules = (
+                    LogHandler,
+                    DisplayHandler,
+                    HistoryHandler,
+        )
 
         self._modules = []
 
@@ -137,6 +141,7 @@ class Brewer():
         restModules = (
             TemperatureREST(self),
             RelayREST(self),
+            LogREST(self),
         )
 
         for module in restModules:

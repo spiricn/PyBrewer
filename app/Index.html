@@ -5,11 +5,8 @@ from brewer.HistoryHandler import HistoryHandler
 import os
 %>
 
-<html>
+<%include file="Header.html"/>
 
-<head>
-
-<title>PyBrewer ${Brewer.version}</title>
 
 <script>
 
@@ -157,6 +154,8 @@ refreshStatus()
     </tr>
 
 </table>
+
+<a href="/log"> Logs </a>
 
 
 <table>
