@@ -1,3 +1,23 @@
+<script>
+
+function shutdown() {
+    var confirmed = confirm("Stop PyBrewer?");
+    if(!confirmed){
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/shutdown');
+
+    xhr.onload = function() {
+        alert('shutdown ok');
+    };
+
+    xhr.send()
+}
+
+</script>
+
 <table>
 
 <tr>
@@ -9,7 +29,7 @@
 
 <td> <a class="main" href="history"> Temperature </a> </td>
 
-<td> <a class="main" href="rest/shutdown"> Shutdown </a> </td>
+<td> <a class="main" href="javascript:shutdown();"> Shutdown </a> </td>
 
 </tr>
 </table>
