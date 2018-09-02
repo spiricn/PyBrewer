@@ -2,13 +2,16 @@
 
 from brewer.HistoryHandler import HistoryHandler
 
-samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
+
+
+
+samples = []
+
+if 'entry' in request.params:
+    samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
 
 time = [date + 'T' + time for date, time,temperature in samples]
 temperature = [temperature for date, time,temperature in samples]
-
-maxTemp = max(temperature)
-
 
 
 %>
@@ -29,6 +32,38 @@ maxTemp = max(temperature)
 
 <script>
 
+function update() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/temperature/get');
+
+    xhr.onload = function() {
+        var res = JSON.parse(xhr.response);
+
+        var time = new Date();
+        var temperature = res.res;
+
+        console.log('new sample: '+ time + ' , ' + temperature);
+
+        data.push({x: time, y: temperature});
+
+        chart.update();
+
+        setTimeout(update, 2000);
+    }
+
+    xhr.onerror = function() {
+        console.log("error fetching temperature");
+
+        setTimeout(update, 1000);
+    }
+
+    xhr.send()
+}
+
+% if 'entry' not in request.params:
+update();
+% endif
+
 var time = ${time};
 
 var temperature = ${temperature};
@@ -39,14 +74,14 @@ for(var i=0; i<time.length; i++){
     data.push({x: new Date(time[i]), y: temperature[i]});
 }
 
-new Chart(document.getElementById("myChart"), {
+var chart = new Chart(document.getElementById("myChart"), {
   type: 'line',
   data: {
     datasets: [
         {
             data: data,
             label: "Temperature",
-            borderColor: "#3e95cd",
+            borderColor: "#00FF00",
             fill: false,
             showLine: true,
             pointRadius: 0,
@@ -57,16 +92,29 @@ new Chart(document.getElementById("myChart"), {
   },
   options: {
     title: {
+      responsive: true,
       display: true,
       text: 'Temperature history C'
+    },
+    tooltips: {
+                        position: 'nearest',
+                        mode: 'index',
+                        intersect: false,
+                        yPadding: 10,
+                        xPadding: 10,
+                        caretSize: 8,
+                        backgroundColor: 'rgba(72, 241, 12, 1)',
+                        borderColor: 'rgba(0,0,0,1)',
+                        borderWidth: 4
     },
     scales: {
         yAxes: [{
             display: true,
             ticks: {
-                min: ${min(temperature) - 3},
-                max: ${max(temperature) + 3}
+                min: 28,
+                max: 19
             }
+
         }],
         xAxes: [{
             display: true,
