@@ -7,8 +7,11 @@ from brewer.HistoryHandler import HistoryHandler
 
 samples = []
 
+pointRadius = 5
+
 if 'entry' in request.params:
     samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
+    pointRadius = 0
 
 time = [date + 'T' + time for date, time,temperature in samples]
 temperature = [temperature for date, time,temperature in samples]
@@ -31,6 +34,7 @@ div {
 </head>
 
 <body>
+
 
 <div>
 <canvas id="myChart"></canvas>
@@ -94,7 +98,8 @@ var chart = new Chart(document.getElementById("myChart"), {
             borderColor: "#00FF00",
             fill: false,
             showLine: true,
-            pointRadius: 0,
+            pointRadius: ${pointRadius},
+            pointBackgroundColor : "#a01b1b",
             cubicInterpolationMode: 'cubic'
         },
 
@@ -122,6 +127,7 @@ var chart = new Chart(document.getElementById("myChart"), {
             display: true,
             ticks: {
                 min: 28,
+                stepSize: 1,
                 max: 19
             }
 
