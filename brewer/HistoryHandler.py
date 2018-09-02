@@ -53,7 +53,7 @@ class HistoryHandler(Handler):
     def getRecords(self):
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                return [i[0] for i in cursor.execute('SELECT distinct(date) from samples').fetchall()]
+                return [i[0] for i in cursor.execute('SELECT distinct(date) from samples ORDER BY date DESC').fetchall()]
 
     def getSamples(self, date):
         with self.brewer.database as conn:
