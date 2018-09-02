@@ -145,12 +145,16 @@ class Brewer():
         # Add our own REST API
         self._server.rest.addApi(
             (
-             RestHandler(
+                RestHandler(
                     'status',
                     self._restStatus
                     ),
-
+                RestHandler(
+                    'shutdown',
+                    self._restShutdown
+                    )
             )
+
         )
 
         # Register ourselves to the servlet environment (will be available from all the templates)
@@ -161,6 +165,11 @@ class Brewer():
 
         self._mainThread = Thread(target=self._mainLoop())
         self._mainThread.start()
+
+    def _restShutdown(self):
+        self.stop()
+
+        return (CODE_OK, MIME_JSON, {'success' : True})
 
     @property
     def temperatureSensor(self):
