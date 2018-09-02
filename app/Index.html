@@ -148,16 +148,13 @@ refreshStatus()
         <td> ${Brewer.temperatureControl.targetTemperatureCelsius} </td>
     </tr>
 
-</table>
+    <tr><td></br></td></tr>
+    <tr><td colspan=2> <h2> History </h2> </td></tr>
 
-
-<table>
-
-<tr><th>History</th></tr>
-%for entry in Brewer.getModule(HistoryHandler).getRecords():
+    %for entry in Brewer.getModule(HistoryHandler).getRecords():
 
 <tr>
-<td>
+<td align="center">
 
 <a href="/history?entry=${entry}"> ${entry} </a> </td>
 </tr>
