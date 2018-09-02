@@ -20,11 +20,21 @@ temperature = [temperature for date, time,temperature in samples]
 
 <script src="/js/Chart.js"></script>
 
+<style>
+
+div {
+ position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+}
+
+</style>
 </head>
 
 <body>
 
-<canvas id="myChart" width="400" height="400"></canvas>
+<div>
+<canvas id="myChart"></canvas>
+</div>
 
 </body>
 
