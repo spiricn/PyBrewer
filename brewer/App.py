@@ -1,10 +1,11 @@
 import sys
+import os
 import logging
 from Config import Config
 from Brewer import Brewer
 import argparse
-import signal
 from brewer import __version__ as appVersion
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +48,23 @@ def main():
     return brewer.wait()
 
 
-if __name__ == '__main__':
-    # Register signal handler (to stop on CTRL+C)
-#     signal.signal(signal.SIGINT, signalHandler)
+def exceptionHook(exctype, value, tb):
+    '''
+    Global unhandled exception hook, it catches unhandled exceptions
+    logs them, and exists the application
+    '''
 
+    traceStr = ''.join(traceback.format_exception(exctype, value, tb))
+    brewer.logCritical(__name__, 'unhandled exception occurred:\n%s' %
+        traceStr)
+
+    os._exit(-1)
+
+
+if __name__ == '__main__':
+    # Register the global exception hook
+    sys.excepthook = exceptionHook
+
+    # Run the app
     sys.exit(main())
 

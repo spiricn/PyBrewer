@@ -125,7 +125,11 @@ class DisplayHandler(Handler):
         # Render text & update display
         self._display.renderer.clear()
         self._display.renderer.drawText((0, 0), screenHandlers[self._currentScreen]())
-        self._display.renderer.display()
+
+        try:
+            self._display.renderer.display()
+        except Exception as e:
+            self.brewer.logWarning(__name__, 'Error updating display: %s' % str(e))
 
     def _getMainScreenText(self):
         '''

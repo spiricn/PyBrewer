@@ -41,12 +41,6 @@ class LogHandler(Handler):
 
         time = datetime.datetime.now().strftime(self.TIME_FORMAT)
 
-        with self.brewer.database as conn:
-            with conn:
-                with closing(conn.cursor()) as cursor:
-                    cursor.execute('''INSERT INTO ''' + self.TABLE_LOGS + '''
-                        VALUES (?,?,?,?)''', (level, module, message, time))
-
         if level in self.PUSH_NOTIFICATION_LEVELS:
             if self._notificationsSent > self.MAX_DAILY_NOTIFICATIONS:
                 self.brewer.logWarning(__name__, 'Max daily notifications exceeded')
@@ -62,6 +56,12 @@ class LogHandler(Handler):
                 self._pushNotifications.sendNotification('%s: %s' % (levelMap[level], module),
                                                          message)
                 self._notificationsSent += 1
+
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('''INSERT INTO ''' + self.TABLE_LOGS + '''
+                        VALUES (?,?,?,?)''', (level, module, message, time))
 
     def clear(self):
         logger.debug('clearing logs')

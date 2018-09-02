@@ -196,6 +196,9 @@ class Brewer():
     def logError(self, module, message):
         self.log(logging.ERROR, module, message)
 
+    def logCritical(self, module, message):
+        self.log(logging.CRITICAL, module, message)
+
     def log(self, level, module, message):
         self.getModule(LogHandler).log(level, module, message)
 
