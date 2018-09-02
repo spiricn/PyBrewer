@@ -78,6 +78,15 @@ class Config:
 
         return self._getValue('DATABASE_PATH', 'pybrewer.db')
 
+    @property
+    def validTemperatureRangeCelsius(self):
+        '''
+        Temperature range considered valid.
+        Temperatures outside of this range will be treated as errors.
+        '''
+
+        return self._getValue('VALID_TEMPERATURE_RANGE_CELSIUS', (10, 40))
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]
