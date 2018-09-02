@@ -12,6 +12,8 @@ if 'entry' in request.params:
 
 time = [date + 'T' + time for date, time, temperature, target, relay in samples]
 temperature = [temperature for date, time,temperature, target, relay in samples]
+target = [0.0 if not target else target for date, time,temperature, target, relay in samples]
+relay = [0 if not relay else 20 for date, time,temperature, target, relay in samples]
 
 
 %>
@@ -45,17 +47,16 @@ div {
 
 function update() {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/temperature/get');
+    xhr.open('POST', 'rest/history/get');
 
     xhr.onload = function() {
-        var res = JSON.parse(xhr.response);
+        var res = JSON.parse(xhr.response).res;
 
         var time = new Date();
-        var temperature = res.res;
 
-        console.log('new sample: '+ time + ' , ' + temperature);
-
-        data.push({x: time, y: temperature});
+        tempData.push({x: time, y: res.temperature});
+        targetData.push({x: time, y: res.target});
+        relayData.push({x: time, y: res.relay ? 20 : 0});
 
         chart.update();
 
@@ -79,10 +80,20 @@ var time = ${time};
 
 var temperature = ${temperature};
 
-var data = []
+var target = ${target};
+
+var relay= ${relay};
+
+var tempData = [];
+
+var targetData = [];
+
+var relayData = [];
 
 for(var i=0; i<time.length; i++){
-    data.push({x: new Date(time[i]), y: temperature[i]});
+    tempData.push({x: new Date(time[i]), y: temperature[i]});
+    targetData.push({x: new Date(time[i]), y: target[i]});
+    relayData.push({x: new Date(time[i]), y: relay[i]});
 }
 
 var chart = new Chart(document.getElementById("myChart"), {
@@ -90,9 +101,31 @@ var chart = new Chart(document.getElementById("myChart"), {
   data: {
     datasets: [
         {
-            data: data,
+            data: tempData,
             label: "Temperature",
             borderColor: "#00FF00",
+            fill: false,
+            showLine: true,
+            pointRadius: 0,
+            pointBackgroundColor : "#a01b1b",
+            cubicInterpolationMode: 'cubic'
+        },
+        
+        {
+            data: targetData,
+            label: "Target",
+            borderColor: "#FF0000",
+            fill: false,
+            showLine: true,
+            pointRadius: 0,
+            pointBackgroundColor : "#a01b1b",
+            cubicInterpolationMode: 'cubic'
+        },
+        
+        {
+            data: relayData,
+            label: "Relay",
+            borderColor: "#0000FF",
             fill: false,
             showLine: true,
             pointRadius: 0,

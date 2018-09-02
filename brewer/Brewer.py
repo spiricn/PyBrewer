@@ -21,6 +21,7 @@ from brewer.LogHandler import LogHandler
 from brewer.rest.LogREST import LogREST
 from brewer.TemperatureControlHandler import TemperatureControlHandler
 from brewer.TemperatureReaderHandler import TemperatureReaderHandler
+from brewer.rest.HistoryREST import HistoryREST
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +136,7 @@ class Brewer():
             TemperatureREST(self),
             RelayREST(self),
             LogREST(self),
+            HistoryREST(self),
         )
 
         for module in restModules:
