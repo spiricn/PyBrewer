@@ -3,6 +3,8 @@
 from brewer.HistoryHandler import HistoryHandler
 
 import os
+import datetime
+
 %>
 
 <%include file="Header.html"/>
@@ -152,9 +154,9 @@ refreshStatus()
     %for entry in Brewer.getModule(HistoryHandler).getRecords():
 
 <tr>
-<td align="center">
+<td>
 
-<a href="/history?entry=${entry}"> ${entry} </a> </td>
+<a class="main" href="/history?entry=${entry}"> ${datetime.datetime.strptime(entry, '%Y-%m-%d').strftime('%A %d-%b')} </a> </td>
 </tr>
 
 % endfor
