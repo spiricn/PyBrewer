@@ -39,13 +39,16 @@ class HistoryHandler(Handler):
         # Create a temperature/seconds sample
         sample = (currentDate.strftime(self.DATE_FORMAT),
                   currentDate.strftime(self.TIME_FORMAT),
-                  tempC)
+                  tempC,
+                  self.brewer.config.targetTemperatureCelsius,
+                  1 if self.brewer.relayPin.output else 0
+        )
 
         # Insert into database
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('INSERT INTO samples VALUES (?,?,?)', sample)
+                    cursor.execute('INSERT INTO samples VALUES (?,?,?,?,?)', sample)
 
         # Reset time
         self._elapsedSec = 0
@@ -58,7 +61,7 @@ class HistoryHandler(Handler):
     def getSamples(self, date):
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                return [(date, time, temperature) for date, time, temperature in cursor.execute('SELECT date, time, temperature FROM samples WHERE date=? ORDER BY time ', (date,)).fetchall()
+                return [(date, time, temperature, target, relay) for date, time, temperature, target, relay in cursor.execute('SELECT date, time, temperature, target, relay FROM samples WHERE date=? ORDER BY time ', (date,)).fetchall()
                            if temperature != TemperatureSensor.TEMP_INVALID_C]
 
     def onStart(self):
@@ -67,7 +70,7 @@ class HistoryHandler(Handler):
             with conn:
                 with closing(conn.cursor()) as cursor:
                     cursor.execute('''CREATE TABLE IF NOT EXISTS samples
-                            (date text, time text, temperature real)''')
+                            (date text, time text, temperature real, target real, relay integer)''')
 
     def onStop(self):
         pass

@@ -10,8 +10,8 @@ samples = []
 if 'entry' in request.params:
     samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
 
-time = [date + 'T' + time for date, time,temperature in samples]
-temperature = [temperature for date, time,temperature in samples]
+time = [date + 'T' + time for date, time, temperature, target, relay in samples]
+temperature = [temperature for date, time,temperature, target, relay in samples]
 
 
 %>
