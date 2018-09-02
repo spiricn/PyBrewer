@@ -11,7 +11,6 @@ from time import sleep
 import logging
 from threading import Thread
 import brewer
-from brewer.PushNotifications import PushNotifications
 from rpi.IOPin import IOPin
 import sqlite3
 from contextlib import closing
@@ -46,9 +45,6 @@ class Brewer():
 
         # Relay control
         self._relayPin = IOPin.createOutput(self._config.relayGpioPinNumber)
-
-        # Push notifications
-        self._pushNotifications = PushNotifications(self._config.pushoverUserToken, self._config.pushoverAppToken)
 
         self._mainThread = None
 

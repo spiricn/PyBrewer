@@ -31,6 +31,7 @@ class PushNotifications:
         logger.debug('[%s]: %s' % (title, message))
 
         if not self._userToken or not self._appToken:
+            logger.debug('notifications not configured')
             return
 
         # Create connection
