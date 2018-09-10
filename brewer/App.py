@@ -1,5 +1,6 @@
 import sys
 import os
+import threading
 import logging
 from Config import Config
 from Brewer import Brewer
@@ -48,6 +49,29 @@ def main():
     return brewer.wait()
 
 
+def installThreadExcepthook():
+    '''
+    Workaround for sys.excepthook thread bug
+    (https://sourceforge.net/tracker/?func=detail&atid=105470&aid=1230540&group_id=5470).
+    Call once from __main__ before creating any threads.
+    If using psyco, call psycho.cannotcompile(threading.Thread.run)
+    since this replaces a new-style class method.
+    '''
+    runOld = threading.Thread.run
+
+    def run(*args, **kwargs):
+        try:
+            runOld(*args, **kwargs)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            sys.excepthook(*sys.exc_info())
+
+    threading.Thread.run = run
+
+    sys.excepthook = exceptionHook
+
+
 def exceptionHook(exctype, value, tb):
     '''
     Global unhandled exception hook, it catches unhandled exceptions
@@ -63,7 +87,7 @@ def exceptionHook(exctype, value, tb):
 
 if __name__ == '__main__':
     # Register the global exception hook
-    sys.excepthook = exceptionHook
+    installThreadExcepthook()
 
     # Run the app
     sys.exit(main())
