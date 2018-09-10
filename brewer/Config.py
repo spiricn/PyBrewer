@@ -76,7 +76,7 @@ class Config:
         Database path
         '''
 
-        return self._getValue('DATABASE_PATH', 'pybrewer.db')
+        return self._getValue('DATABASE_PATH', 'app/pybrewer.db')
 
     @property
     def validTemperatureRangeCelsius(self):

@@ -149,6 +149,14 @@ refreshStatus()
     </tr>
 
     <tr><td></br></td></tr>
+    <tr><td colspan=2> <h2> Misc </h2> </td></tr>
+
+    <tr>
+        <td> Data </td>
+        <td> <a class="main" href="pybrewer.db"> Download ( ${os.path.getsize(Brewer.config.databasePath)} B ) </a> </td>
+    </tr>
+
+    <tr><td></br></td></tr>
     <tr><td colspan=2> <h2> History </h2> </td></tr>
 
     %for entry in Brewer.getModule(HistoryHandler).getRecords():
