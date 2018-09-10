@@ -108,4 +108,4 @@ class LogHandler(Handler):
         self.log(logging.INFO, __name__, 'Session start')
 
     def onStop(self):
-        pass
+        self.log(logging.INFO, __name__, 'Session stop')

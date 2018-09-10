@@ -94,6 +94,9 @@ class Brewer():
         for module in self._modules:
             module.onStart()
 
+        # Start the server
+        self._server.start()
+
         # Update display every 2 seconds
         lastTime = time.time()
 
@@ -159,9 +162,6 @@ class Brewer():
 
         # Register ourselves to the servlet environment (will be available from all the templates)
         self._server.env['Brewer'] = self
-
-        # Start the server
-        self._server.start()
 
         self._mainThread = Thread(target=self._mainLoop())
         self._mainThread.start()
