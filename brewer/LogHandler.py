@@ -2,6 +2,7 @@ from brewer.Handler import Handler
 import logging
 from contextlib import closing
 import datetime
+import html
 from brewer.PushNotifications import PushNotifications
 
 logger = logging.getLogger(__name__)
@@ -78,7 +79,7 @@ class LogHandler(Handler):
             with conn:
                 with closing(conn.cursor()) as cursor:
 
-                    return [(level, module, message, datetime.datetime.strptime(time, self.TIME_FORMAT))
+                    return [(level, module, html.escape(message), datetime.datetime.strptime(time, self.TIME_FORMAT))
                              for level, module, message, time in cursor.execute('''SELECT * FROM ''' + self.TABLE_LOGS + ''' ORDER BY time DESC''').fetchall()]
 
     def getNumErrors(self):
