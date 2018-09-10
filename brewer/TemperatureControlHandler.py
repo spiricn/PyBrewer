@@ -4,6 +4,7 @@ import logging
 
 from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 from brewer.Handler import Handler
+from brewer.TemperatureControlAlgorithm import TemperatureControlAlgorithm
 
 logger = logging.getLogger(__name__)
 
@@ -13,9 +14,6 @@ class TemperatureControlHandler(Handler):
     Reads temperatures from the sensors, and turns the relay on or off
     to control the temperature
     '''
-
-    # Temperature epsilon after which the relay will turn off
-    EPSILON_C = 0.5
 
     # Sleep time between loops
     SLEEP_TIME_SEC = 2.0
@@ -39,6 +37,12 @@ class TemperatureControlHandler(Handler):
         # Target temperature we're trying to achieve
         self.targetTemperatureCelsius = self.brewer.config.targetTemperatureCelsius
 
+        # Instantiate the algorithm
+        self._controlAlgorithm = TemperatureControlAlgorithm(self.targetTemperatureCelsius)
+
+        # Relay state
+        self._currentState = None
+
     def _run(self):
         '''
         Start the controller
@@ -53,41 +57,38 @@ class TemperatureControlHandler(Handler):
 
         errorLogged = False
 
+        # Main loop
         while self._running:
             # Read the current temperature from probe
             currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
 
+            # Check if the read failed
             if currentTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
 
+                # Log the error only once (if the probe failed we can except an error every loop)
                 if not errorLogged:
                     self.brewer.logError(__name__, 'failure reading temperature value, shutting off')
 
-                    # Shut the relay off and wait before trying again
+                    # Shut the relay off
                     self._setRelayState(False)
+
+                    # Wait before trying again
                     sleep(self.ERROR_SLEEP_TIME_SEC)
 
+                    # Don't log consecutive errors
                     errorLogged = True
 
                     continue
 
+            # Log we resumed after read failures
             if errorLogged:
-                self.brewer.logInfo(__name__, 'resuming')
+                self.brewer.logInfo(__name__, 'resuming'
+                )
 
             errorLogged = False
 
-            if currentTemperatureCelsius >= self.targetTemperatureCelsius:
-                # Temperature above target, turn on cooling
-                logger.debug('temperature above target: %.2f > %.2f',
-                             currentTemperatureCelsius,
-                             self.targetTemperatureCelsius)
-
-                self._setRelayState(True)
-
-            elif currentTemperatureCelsius <= self.targetTemperatureCelsius - self.EPSILON_C:
-                # Temperature below target, turn off cooling
-                logger.debug('temperature below target: %.2f < %.2f', currentTemperatureCelsius, self.targetTemperatureCelsius)
-
-                self._setRelayState(False)
+            # Control the relasy
+            self._setRelayState(self._controlAlgorithm.control(currentTemperatureCelsius))
 
             # Wait a bit
             sleep(self.SLEEP_TIME_SEC)
@@ -104,8 +105,15 @@ class TemperatureControlHandler(Handler):
         Turns the relay on or off
         '''
 
+        # Ignore same state changes
+        if self._currentState != None and self._currentState == state:
+            return
+
+        # Change state
         logger.debug('setting relay state: ' + str(state))
         self._relayPin.setOutput(state)
+
+        self._currentState = state
 
     def setState(self, state):
         '''
