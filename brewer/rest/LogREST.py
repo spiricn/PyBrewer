@@ -5,7 +5,7 @@ from brewer.LogHandler import LogHandler
 
 class LogREST:
     '''
-    Rest API used to control the relay
+    Rest API used to control the log handler
     '''
 
     def __init__(self, brewer):

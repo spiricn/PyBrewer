@@ -9,27 +9,43 @@ logger = logging.getLogger(__name__)
 
 
 class LogHandler(Handler):
+    '''
+    Handlers which stores logs into the database, and reads them
+
+    Only the most important logs (which are of concern to the end user) should go trough this handler
+    '''
+
+    # Main table name
     TABLE_LOGS = 'logs'
 
+    # Time format used to encode time in
     TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
+    # Maximum number of notifications this handler can generate in one day
     MAX_DAILY_NOTIFICATIONS = 50
 
+    # Log level considered worthy of a push notification
     PUSH_NOTIFICATION_LEVELS = [logging.ERROR, logging.CRITICAL, logging.WARN]
 
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
 
+        # Date of last update
         self._lastDate = datetime.datetime.now()
 
+        # Number of notifications sent today
         self._notificationsSent = 0
 
-        # Push notifications
-        self._pushNotifications = PushNotifications(self.brewer.config.pushoverUserToken, self.brewer.config.pushoverAppToken)
+        # Instantiate push notifications handler
+        self._pushNotifications = PushNotifications(
+            self.brewer.config.pushoverUserToken, self.brewer.config.pushoverAppToken
+        )
 
     def update(self, elapsedTime):
+        # Get current  date & time
         currentDate = datetime.datetime.now()
 
+        # Reset notification counter on day change
         if currentDate.day != self._lastDate.day:
             self.brewer.logDebug(__name__, 'removing notifications limit: %d != %d' % (currentDate.day, self._lastDate.day))
 
@@ -38,10 +54,13 @@ class LogHandler(Handler):
             self._notificationsSent = 0
 
     def log(self, level, module, message):
+        # Log the message to regular logger
         logger.log(level, '[%s] %s' % (module, message))
 
+        # Get  current time
         time = datetime.datetime.now().strftime(self.TIME_FORMAT)
 
+        # Send a push notification if conditions are met
         if level in self.PUSH_NOTIFICATION_LEVELS:
             if self._notificationsSent > self.MAX_DAILY_NOTIFICATIONS:
                 self.brewer.logWarning(__name__, 'Max daily notifications exceeded')
@@ -58,6 +77,7 @@ class LogHandler(Handler):
                                                          message)
                 self._notificationsSent += 1
 
+        # Write the message to database
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
@@ -65,6 +85,10 @@ class LogHandler(Handler):
                         VALUES (?,?,?,?)''', (level, module, message, time))
 
     def clear(self):
+        '''
+        Clears all the logs from the database
+        '''
+
         logger.debug('clearing logs')
 
         with self.brewer.database as conn:
@@ -75,20 +99,38 @@ class LogHandler(Handler):
         return True
 
     def getLogs(self):
+        '''
+        Gets all the logs from database
+        '''
+
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-
+                    # Parse the time/date and HTML escape the message
                     return [(level, module, html.escape(message), datetime.datetime.strptime(time, self.TIME_FORMAT))
                              for level, module, message, time in cursor.execute('''SELECT * FROM ''' + self.TABLE_LOGS + ''' ORDER BY time DESC''').fetchall()]
 
     def getNumErrors(self):
+        '''
+        Get number of errors in the database
+
+        TODO: Make a generic version of this
+        '''
+
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
                     return cursor.execute('SELECT COUNT(*) FROM ' + self.TABLE_LOGS + ' WHERE level IN (?,?)', (logging.ERROR, logging.CRITICAL)).fetchone()[0]
 
     def getLatestError(self):
+        '''
+        Get latest error message
+
+        TODO: Make a generic version of this
+
+        @return: Date when the last error message happened
+        '''
+
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
@@ -96,9 +138,11 @@ class LogHandler(Handler):
                     if not res:
                         return None
 
+                    # Parse date
                     return datetime.datetime.strptime(res[0], self.TIME_FORMAT)
 
     def onStart(self):
+        # Create log table if it doesn't exist
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:

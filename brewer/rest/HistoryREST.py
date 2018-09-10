@@ -4,6 +4,9 @@ from brewer.LogHandler import LogHandler
 
 
 class HistoryREST:
+    '''
+    API used to fetch informatino from history hadnler
+    '''
 
     def __init__(self, brewer):
         self._brewer = brewer

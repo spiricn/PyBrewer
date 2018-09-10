@@ -44,6 +44,7 @@ class TemperatureReaderHandler(Handler):
 
             # Read new temperature if the value is stale or invalid
             if self._cachedTemp == None or elapsedTime >= self.TEMP_READ_PERIOD or not self._validTempC(self._cachedTemp):
+                # Cache the value & remember when we got it
                 self._cachedTemp = self._temperatureSensor.getTemperatureCelsius()
                 self._lastRead = currentTime
 
@@ -55,6 +56,7 @@ class TemperatureReaderHandler(Handler):
             return self._cachedTemp
 
     def _validTempC(self, tempC):
+        # Temperature is considered valid if it's in specified valid range
         minValidTempC, maxValidTempC = self._validTemperatureRange
 
         return self._cachedTemp > minValidTempC and self._cachedTemp < maxValidTempC
