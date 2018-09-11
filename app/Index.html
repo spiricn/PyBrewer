@@ -4,6 +4,7 @@ from brewer.HistoryHandler import HistoryHandler
 
 import os
 import datetime
+from brewer.Utils import Utils
 
 %>
 
@@ -153,7 +154,7 @@ refreshStatus()
 
     <tr>
         <td> Data </td>
-        <td> <a class="main" href="pybrewer.db"> Download ( ${os.path.getsize(Brewer.config.databasePath)} B ) </a> </td>
+        <td> <a class="main" href="pybrewer.db"> Download ( ${Utils.getHumanReadableSize(os.path.getsize(Brewer.config.databasePath))} ) </a> </td>
     </tr>
 
     <tr><td></br></td></tr>
