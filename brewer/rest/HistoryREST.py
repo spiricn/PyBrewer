@@ -25,7 +25,7 @@ class HistoryREST:
 
         )
 
-    def _getHistory(self):
+    def _getHistory(self, request):
         res = {
             'temperature' : self._brewer.temperatureSensor.getTemperatureCelsius(),
             'target' : self._brewer.config.targetTemperatureCelsius,

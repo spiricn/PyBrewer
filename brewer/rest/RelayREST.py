@@ -19,7 +19,7 @@ class RelayREST:
                 # Fetch relay state
                 RestHandler(
                     'relay/get_state',
-                    lambda: (CODE_OK, MIME_JSON,
+                    lambda request: (CODE_OK, MIME_JSON,
                                 {'success' : True, 'res' : self._brewer.relayPin.output})
                 ),
 
@@ -30,7 +30,7 @@ class RelayREST:
                 ),
         )
 
-    def toggle(self, **kwargs):
+    def toggle(self, request):
         '''
         Toggle the relay state
         '''

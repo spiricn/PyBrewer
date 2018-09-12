@@ -16,6 +16,25 @@ function shutdown() {
     xhr.send()
 }
 
+function logout() {
+    var confirmed = confirm("Logout?");
+    if(!confirmed){
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/user/logout');
+
+    xhr.onload = function() {
+        alert('logout ok');
+
+        location.reload();
+    };
+
+    xhr.send()
+}
+
+
 </script>
 
 <table>
@@ -30,6 +49,8 @@ function shutdown() {
 <td> <a class="main" href="history"> Temperature </a> </td>
 
 <td> <a class="main" href="javascript:shutdown();"> Shutdown </a> </td>
+
+<td> <a class="main" href="javascript:logout();"> Logout </a> </td>
 
 </tr>
 </table>

@@ -20,7 +20,7 @@ class LogREST:
                 # Fetch relay state
                 RestHandler(
                     'log/clear',
-                    lambda: (CODE_OK, MIME_JSON,
+                    lambda request: (CODE_OK, MIME_JSON,
                                 {'success' : True, 'res' : self._brewer.getModule(LogHandler).clear()})
                 ),
 

@@ -1,0 +1,40 @@
+
+<script>
+
+function login() {
+    var username = document.getElementById('username').value;
+    var password = document.getElementById('password').value;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/user/login');
+
+    xhr.onerror = function() {
+        if(xhr.status != 200){
+            alert('login failed (error: ' + xhr.status + ')');
+            return;
+        }
+    };
+    
+    xhr.onload = function() {
+        
+        if(xhr.status == 200){
+            location.reload();
+        }
+        else{
+            alert('login failed (error: ' + xhr.status + ')');
+        }
+    }
+
+    xhr.send(JSON.stringify({username:username, password:password}));
+}
+
+</script>
+
+<table>
+
+<tr> <td> Username </td> <td> <input type="text" id="username"> </td> </tr>
+<tr> <td> Password </td> <td> <input type="text" id="password"> </td></tr> 
+
+<tr colspan=2> <td><button onclick="javascript:login()"> Login </button> </td></tr>
+
+</table>

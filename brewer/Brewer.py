@@ -1,27 +1,30 @@
-import os
-import time
-from ssc.http import HTTP
-from ssc.servlets.RestServlet import RestHandler
-from ssc.servlets.ServletContainer import ServletContainer
-from rest.TemperatureREST import TemperatureREST
-from rest.RelayREST import RelayREST
-from TemperatureControl import TemperatureControl
-from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
-from time import sleep
-import logging
-from threading import Thread
-import brewer
-from rpi.IOPin import IOPin
-import sqlite3
 from contextlib import closing
+import logging
+import os
+import sqlite3
+from threading import Thread
+from time import sleep
+import time
 
+from TemperatureControl import TemperatureControl
+import brewer
 from brewer.DisplayHandler import DisplayHandler
 from brewer.HistoryHandler import HistoryHandler
 from brewer.LogHandler import LogHandler
-from brewer.rest.LogREST import LogREST
+from brewer.SessionHandler import SessionHandler
 from brewer.TemperatureControlHandler import TemperatureControlHandler
 from brewer.TemperatureReaderHandler import TemperatureReaderHandler
 from brewer.rest.HistoryREST import HistoryREST
+from brewer.rest.LogREST import LogREST
+from rest.RelayREST import RelayREST
+from rest.TemperatureREST import TemperatureREST
+from rpi.IOPin import IOPin
+from ssc.http import HTTP
+from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
+from ssc.servlets.RestServlet import RestHandler
+from ssc.servlets.ServletContainer import ServletContainer
+from brewer.SessionServlet import SessionServlet
+from brewer.rest.UserREST import UserREST
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +54,7 @@ class Brewer():
 
         # Module classes
         modules = (
+                    SessionHandler,
                     LogHandler,
                     DisplayHandler,
                     HistoryHandler,
@@ -74,6 +78,10 @@ class Brewer():
                 return module
 
         return None
+
+    @property
+    def server(self):
+        return self._server
 
     @property
     def config(self):
@@ -131,6 +139,8 @@ class Brewer():
                                      os.path.join(self._config.root, 'tmp')
          )
 
+        self._server.insertServlet(0, SessionServlet(self, self._server, '^.$'))
+
         # Create REST API
         self._server.addRestAPI()
 
@@ -140,6 +150,7 @@ class Brewer():
             RelayREST(self),
             LogREST(self),
             HistoryREST(self),
+            UserREST(self),
         )
 
         for module in restModules:
@@ -166,7 +177,7 @@ class Brewer():
         self._mainThread = Thread(target=self._mainLoop())
         self._mainThread.start()
 
-    def _restShutdown(self):
+    def _restShutdown(self, request):
         self.stop()
 
         return (CODE_OK, MIME_JSON, {'success' : True})
@@ -213,7 +224,7 @@ class Brewer():
     def log(self, level, module, message):
         self.getModule(LogHandler).log(level, module, message)
 
-    def _restStatus(self, **kwargs):
+    def _restStatus(self, request):
         '''
         Reads the status of everything
         '''

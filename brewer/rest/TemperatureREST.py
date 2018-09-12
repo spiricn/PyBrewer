@@ -15,7 +15,7 @@ class TemperatureREST:
                 # Get temperature reading
                 RestHandler(
                     'temperature/get',
-                    lambda: (CODE_OK, MIME_JSON,
+                    lambda request: (CODE_OK, MIME_JSON,
                                 {'success' : True, 'res' : self._brewer.temperatureSensor.getTemperatureCelsius()})
                 ),
 
@@ -26,7 +26,7 @@ class TemperatureREST:
                 ),
         )
 
-    def toggleControllerState(self, **kwargs):
+    def toggleControllerState(self, request):
         '''
         Toggles temperature control
         '''
