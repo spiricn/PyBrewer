@@ -24,6 +24,18 @@ class LogHandler(Handler):
     # Maximum number of notifications this handler can generate in one day
     MAX_DAILY_NOTIFICATIONS = 50
 
+    # Log level
+    COL_LEVEL = 'level'
+
+    # Log source module
+    COL_MODULE = 'module'
+
+    # Log message
+    COL_MESSAGE = 'message'
+
+    # Log timestamp
+    COL_TIME = 'time'
+
     # Log level considered worthy of a push notification
     PUSH_NOTIFICATION_LEVELS = [logging.ERROR, logging.CRITICAL, logging.WARN]
 
@@ -81,8 +93,10 @@ class LogHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('''INSERT INTO ''' + self.TABLE_LOGS + '''
-                        VALUES (?,?,?,?)''', (level, module, message, time))
+                    cursor.execute('INSERT INTO %s VALUES (?,?,?,?)'
+                                   % (self.TABLE_LOGS,),
+                                   (level, module, message, time)
+                    )
 
     def clear(self):
         '''
@@ -94,7 +108,9 @@ class LogHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('''DELETE from ''' + self.TABLE_LOGS)
+                    cursor.execute('DELETE from %s'
+                                   % (self.TABLE_LOGS,)
+                     )
 
         return True
 
@@ -108,7 +124,9 @@ class LogHandler(Handler):
                 with closing(conn.cursor()) as cursor:
                     # Parse the time/date and HTML escape the message
                     return [(level, module, html.escape(message), datetime.datetime.strptime(time, self.TIME_FORMAT))
-                             for level, module, message, time in cursor.execute('''SELECT * FROM ''' + self.TABLE_LOGS + ''' ORDER BY time DESC''').fetchall()]
+                             for level, module, message, time in cursor.execute('SELECT * FROM %s ORDER BY %s DESC'
+                                                                                % (self.TABLE_LOGS, self.COL_TIME)
+                             ).fetchall()]
 
     def getNumErrors(self):
         '''
@@ -120,7 +138,10 @@ class LogHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    return cursor.execute('SELECT COUNT(*) FROM ' + self.TABLE_LOGS + ' WHERE level IN (?,?)', (logging.ERROR, logging.CRITICAL)).fetchone()[0]
+                    return cursor.execute('SELECT COUNT(*) FROM %s WHERE %s IN (?,?)'
+                                          % (self.TABLE_LOGS, self.COL_LEVEL),
+                                          (logging.ERROR, logging.CRITICAL)
+                     ).fetchone()[0]
 
     def getLatestError(self):
         '''
@@ -134,7 +155,10 @@ class LogHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    res = cursor.execute('SELECT time from ' + self.TABLE_LOGS + ' WHERE level IN (?,?) ORDER BY time DESC LIMIT 1', (logging.ERROR, logging.CRITICAL)).fetchone()
+                    res = cursor.execute('SELECT %s FROM %s WHERE %s IN (?,?) ORDER BY %s DESC LIMIT 1'
+                                         % (self.COL_TIME, self.TABLE_LOGS, self.COL_LEVEL, self.COL_TIME),
+                                         (logging.ERROR, logging.CRITICAL)
+                    ).fetchone()
                     if not res:
                         return None
 
@@ -146,8 +170,9 @@ class LogHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('''CREATE TABLE IF NOT EXISTS %s
-                            (level integer, module text, message text, time text)''' % self.TABLE_LOGS)
+                    cursor.execute('CREATE TABLE IF NOT EXISTS %s (%s integer, %s text, %s text, %s text)'
+                                   % (self.TABLE_LOGS, self.COL_LEVEL, self.COL_MODULE, self.COL_MESSAGE, self.COL_TIME)
+                    )
 
         self.log(logging.INFO, __name__, 'Session start')
 

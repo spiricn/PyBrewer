@@ -21,7 +21,23 @@ class HistoryHandler(Handler):
     # Time format used for samples
     TIME_FORMAT = '%H:%M:%S'
 
+    # Samples table
     TABLE_SAMPLES = 'samples'
+
+    # Sample date
+    COL_DATE = 'date'
+
+    # Sample time
+    COL_TIME = 'time'
+
+    # Sample actual temperature
+    COL_TEMPERATURE = 'temperature'
+
+    # Sample target temperature
+    COL_TARGET = 'target'
+
+    # Indicates if the relay was on during the sampling
+    COL_RELAY = 'relay'
 
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
@@ -55,7 +71,10 @@ class HistoryHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('INSERT INTO ' + self.TABLE_SAMPLES + ' VALUES (?,?,?,?,?)', sample)
+                    cursor.execute('INSERT INTO %s VALUES (?,?,?,?,?)'
+                                    % (self.TABLE_SAMPLES,),
+                                    sample
+                    )
 
         # Reset time
         self._elapsedSec = 0
@@ -71,7 +90,9 @@ class HistoryHandler(Handler):
 
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                return [i[0] for i in cursor.execute('SELECT distinct(date) from ' + self.TABLE_SAMPLES + ' ORDER BY date DESC').fetchall()]
+                return [i[0] for i in cursor.execute('SELECT distinct(%s) from %s ORDER BY %s DESC'
+                                                     % (self.COL_DATE, self.TABLE_SAMPLES, self.COL_DATE)
+                ).fetchall()]
 
     def getSamples(self, date):
         '''
@@ -83,13 +104,18 @@ class HistoryHandler(Handler):
 
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                return [(date, time, temperature, target, relay) for date, time, temperature, target, relay in cursor.execute('SELECT date, time, temperature, target, relay FROM ' + self.TABLE_SAMPLES + ' WHERE date=? ORDER BY time ', (date,)).fetchall()
-                           if temperature != TemperatureSensor.TEMP_INVALID_C]
+                res = cursor.execute('SELECT %s, %s, %s, %s, %s FROM %s WHERE %s=? ORDER BY %s '
+                              % (self.COL_DATE, self.COL_TIME, self.COL_TEMPERATURE, self.COL_TARGET, self.COL_RELAY, self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME),
+                              (date,)
+                )
+
+                return [(date, time, temperature, target, relay) for date, time, temperature, target, relay in res.fetchall() if temperature != TemperatureSensor.TEMP_INVALID_C]
 
     def onStart(self):
         # Create table if it does not exist
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('''CREATE TABLE IF NOT EXISTS ''' + self.TABLE_SAMPLES + '''
-                            (date text, time text, temperature real, target real, relay integer)''')
+                    cursor.execute('CREATE TABLE IF NOT EXISTS %s (%s text, %s text, %s real, %s real, %s integer)'
+                                   % (self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME, self.COL_TEMPERATURE, self.COL_TARGET, self.COL_RELAY)
+                    )
