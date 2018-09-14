@@ -2,6 +2,7 @@ import logging
 
 from ssc.servlets.PageServlet import PageServlet
 
+from http.cookies import SimpleCookie
 from brewer.SessionHandler import SessionHandler
 from ssc.http.HTTP import HDR_COOKIE, HDR_SET_COOKIE, HDR_LOCATION, CODE_REDIRECT
 from ssc.servlets.Servlet import Servlet
@@ -23,19 +24,41 @@ class SessionServlet(Servlet):
         self._sessionHandler = self._brewer.getModule(SessionHandler)
 
     def handleRequest(self, request, response):
+        session = None
+
         # Get the session ID from cookie, or create one if it doesn't exist
         if HDR_COOKIE in request.headers:
+
             # Session exists in cookie
-            sessionId = request.headers[HDR_COOKIE]
+            cookie = SimpleCookie()
+            cookie.load(request.headers[HDR_COOKIE])
 
-        else:
+            # Extract ID from cookie
+            sessionId = cookie['id'].value
+
+            # Check if session is valid
+            session = self._sessionHandler.getSession(sessionId)
+
+            if not session:
+                # Session not valid, create a new one below
+                session = None
+
+        if not session:
             # Create new session
-            sessionId = self._sessionHandler.createSession()
+            session = self._sessionHandler.createSession()
 
-            response.addHeader(HDR_SET_COOKIE, sessionId)
+            # Create a cookie
+            cookie = SimpleCookie()
+            cookie['id'] = session.id
+            cookie['id']["expires"] = session.expires
+
+            # Get a string representation
+            cookie = cookie.output(header='')[1:]
+
+            response.addHeader(HDR_SET_COOKIE, cookie)
 
         # If session is not authorized let the login servlet handle this
-        if not self._sessionHandler.isSessionAuthorized(sessionId):
+        if not session.authorized:
             # TODO Find a better way of redirecting to login servlet
             for i in self._brewer.server.servlets:
                 if isinstance(i, PageServlet) and i.manifestEntry.filePath == self.LOGIN_PAGE:

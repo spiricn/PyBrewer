@@ -4,6 +4,7 @@ from brewer.SessionHandler import SessionHandler
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from ssc.http.HTTP import HDR_COOKIE, HDR_SET_COOKIE
 from ssc.servlets.RestServlet import RestHandler
+from http.cookies import SimpleCookie
 
 
 class UserREST:
@@ -32,11 +33,30 @@ class UserREST:
         '''
         sessionHandler = self._brewer.getModule(SessionHandler)
 
-        sessionId = None if HDR_COOKIE not in request.headers else request.headers[HDR_COOKIE]
+        sessionId = self._extractSessionId(request)
+
+        if not sessionId:
+            return (500, MIME_JSON, {'success' : False})
 
         success = sessionHandler.terminateSession(sessionId)
 
         return (500 if not success else 200, MIME_JSON, {'success' : success})
+
+    @staticmethod
+    def _extractSessionId(request):
+        rawCookie = None if HDR_COOKIE not in request.headers else request.headers[HDR_COOKIE]
+
+        if not rawCookie:
+            return None
+
+        # Extract session ID from cookie
+        cookie = SimpleCookie()
+        cookie.load(rawCookie)
+
+        if 'id' not in cookie:
+            return None
+
+        return cookie['id'].value
 
     def _login(self, request):
         '''
@@ -53,10 +73,14 @@ class UserREST:
         username = body['username']
         password = body['password']
 
-        sessionId = None if HDR_COOKIE not in request.headers else request.headers[HDR_COOKIE]
+        sessionId = self._extractSessionId(request)
+
+        if not sessionId:
+            return (500, MIME_JSON, {'success' : False})
 
         sessionHandler = self._brewer.getModule(SessionHandler)
 
+        # Authorize session
         success = sessionHandler.authorizeSession(sessionId, username, password)
 
         return (500 if not success else 200, MIME_JSON, {'success' : success})

@@ -2,10 +2,14 @@ import hashlib
 from contextlib import closing
 import logging
 import random
+import datetime
+from collections import namedtuple
 
 from brewer.Handler import Handler
 
 logger = logging.getLogger(__name__)
+
+Session = namedtuple('Session', 'id authorized expires')
 
 
 class SessionHandler(Handler):
@@ -21,6 +25,19 @@ class SessionHandler(Handler):
     # Salt used when generating session IDs
     SALT = 'pybrewsalt'
 
+    # Duration of session
+    SESSION_DURATION_SEC = 1 * 60 * 60 * 24  # 1 day
+
+    # Time format
+    TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
+    COL_ID = 'id'
+    COL_AUTHORIZED = 'authorized'
+    COL_EXPIRES = 'expires'
+
+    COL_USERNAME = 'username'
+    COL_PASSWORD = 'password'
+
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
 
@@ -32,17 +49,17 @@ class SessionHandler(Handler):
         # Generate an ID
         sessionId = self._generateSessionId()
 
-        logger.debug('new session: %s' % sessionId)
+        expires = (datetime.datetime.now() + datetime.timedelta(0, self.SESSION_DURATION_SEC)).strftime(self.TIME_FORMAT)
 
         # Write to database
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('INSERT INTO ' + self.TABLE_SESSIONS + ' VALUES (?,?)', (sessionId, 0))
+                    cursor.execute('INSERT INTO ' + self.TABLE_SESSIONS + ' VALUES (?,?,?)', (sessionId, 0, expires))
 
-        return sessionId
+        return self.getSession(sessionId)
 
-    def isSessionAuthorized(self, sessionId):
+    def getSession(self, sessionId):
         '''
         Check if session is authorized
         '''
@@ -50,9 +67,25 @@ class SessionHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    res = cursor.execute('SELECT authorized FROM ' + self.TABLE_SESSIONS + ' WHERE id=?', (sessionId,)).fetchone()
+                    res = cursor.execute('SELECT ' + self.COL_ID + ', ' + self.COL_AUTHORIZED + ', ' + self.COL_EXPIRES + ' FROM ' + self.TABLE_SESSIONS + ' WHERE ' + self.COL_ID + '=?', (sessionId,)).fetchone()
 
-                    return res and res[0] == 1
+                    if not res:
+                        logger.debug('session does not exist %r' % sessionId)
+                        return None
+
+                    expires = datetime.datetime.strptime(res[2], self.TIME_FORMAT)
+
+                    if datetime.datetime.now() > expires:
+                        logger.debug('session expired')
+
+                        cursor.execute('DELETE FROM ' + self.TABLE_SESSIONS + ' WHERE ' + self.COL_ID + '=?', (sessionId,)).fetchone()
+
+                        return None
+
+                    return Session(res[0],
+                                   res[1],
+                                   expires
+                     )
 
     def terminateSession(self, sessionId):
         '''
@@ -62,7 +95,10 @@ class SessionHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('UPDATE ' + self.TABLE_SESSIONS + ' set authorized=0 WHERE id=?', (sessionId,))
+                    rc = cursor.execute('UPDATE ' + self.TABLE_SESSIONS + ' SET ' + self.COL_AUTHORIZED + '=0 WHERE ' + self.COL_ID + '=?', (sessionId,)).rowcount
+                    if rc != 1:
+                        logger.error('update failed: %d != 1' % rc)
+                        return False
 
                     return True
 
@@ -96,7 +132,7 @@ class SessionHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    res = cursor.execute('SELECT password from ' + self.TABLE_USERS + ' where username=?', (username,)).fetchone()
+                    res = cursor.execute('SELECT ' + self.COL_PASSWORD + ' from ' + self.TABLE_USERS + ' WHERE ' + self.COL_USERNAME + '=?', (username,)).fetchone()
                     if not res:
                         logger.error('invalid username')
                         return False
@@ -109,7 +145,11 @@ class SessionHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('UPDATE ' + self.TABLE_SESSIONS + ' set authorized=1 WHERE id=?', (sessionId,))
+                    rc = cursor.execute('UPDATE ' + self.TABLE_SESSIONS + ' SET ' + self.COL_AUTHORIZED + '=1 WHERE ' + self.COL_ID + '=?', (sessionId,)).rowcount
+
+                    if rc != 1:
+                        logger.error('update failed: %d != 1 for session %r' % (rc, sessionId))
+                        return False
 
                     return True
 
@@ -138,10 +178,10 @@ class SessionHandler(Handler):
             with conn:
                 with closing(conn.cursor()) as cursor:
                     cursor.execute('''CREATE TABLE IF NOT EXISTS ''' + self.TABLE_SESSIONS + '''
-                            (id text, authorized integer)''')
+                            (''' + self.COL_ID + ''' text, ''' + self.COL_AUTHORIZED + ''' integer, ''' + self.COL_EXPIRES + ''' text)''')
 
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
                     cursor.execute('''CREATE TABLE IF NOT EXISTS ''' + self.TABLE_USERS + '''
-                            (username text, password text)''')
+                            (''' + self.COL_USERNAME + ' text, ''' + self.COL_PASSWORD + ''' text)''')
