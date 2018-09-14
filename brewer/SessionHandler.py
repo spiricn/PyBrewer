@@ -25,8 +25,8 @@ class SessionHandler(Handler):
     # Salt used when generating session IDs
     SALT = 'pybrewsalt'
 
-    # Duration of session
-    SESSION_DURATION_SEC = 1 * 60 * 60 * 24  # 1 day
+    # Duration of session ( 1 day )
+    SESSION_DURATION_SEC = 60 * 60 * 24
 
     # Time format
     TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
@@ -38,8 +38,14 @@ class SessionHandler(Handler):
     COL_USERNAME = 'username'
     COL_PASSWORD = 'password'
 
+    # Session cleanup period ( 1 hour )
+    SESSION_CLEANUP_PERIOD_SEC = 60 * 60
+
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
+
+        # Elapsed time since last session cleanup
+        self._timeElapsedSec = 0
 
     def createSession(self):
         '''
@@ -177,6 +183,29 @@ class SessionHandler(Handler):
 
         return md5.hexdigest()
 
+    def update(self, elapsedSec):
+        self._timeElapsedSec += elapsedSec
+
+        # Has enough time passed since last cleanup ?
+        if self._timeElapsedSec > self.SESSION_CLEANUP_PERIOD_SEC:
+            self._timeElapsedSec = 0
+
+            # Clean all expired sessions
+            self._cleanExpiredSessions()
+
+    def _cleanExpiredSessions(self):
+        '''
+        Cleans expired sessions
+        '''
+
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    rc = cursor.execute('DELETE FROM ' + self.TABLE_SESSIONS + ' WHERE datetime(' + self.COL_EXPIRES + ') < datetime(\'%s\')'
+                                        % datetime.datetime.now().strftime(self.TIME_FORMAT)).rowcount
+                    if rc > 0:
+                        logger.debug('cleaned up %d expired sessions' % rc)
+
     def onStart(self):
         # Create table if it does not exist
         with self.brewer.database as conn:
@@ -190,3 +219,5 @@ class SessionHandler(Handler):
                 with closing(conn.cursor()) as cursor:
                     cursor.execute('''CREATE TABLE IF NOT EXISTS ''' + self.TABLE_USERS + '''
                             (''' + self.COL_USERNAME + ' text, ''' + self.COL_PASSWORD + ''' text)''')
+
+        self._cleanExpiredSessions()
