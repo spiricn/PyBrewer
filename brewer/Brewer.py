@@ -255,9 +255,6 @@ class Brewer():
 
         self._running = False
 
-        if self.temperatureControl.running:
-            self.temperatureControl.setState(False)
-
         # Stop main thread
         if self._mainThread:
             self._mainThread.join()

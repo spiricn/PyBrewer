@@ -5,6 +5,7 @@ import logging
 from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 from brewer.Handler import Handler
 from brewer.TemperatureControlAlgorithm import TemperatureControlAlgorithm
+from brewer.SettingsHandler import SettingsHandler
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,9 @@ class TemperatureControlHandler(Handler):
 
     # Sleep time if error happens
     ERROR_SLEEP_TIME_SEC = 4.0
+
+    #
+    STG_KEY_STATE = 'TEMPERATURE_CONTROL_ON'
 
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
@@ -42,6 +46,15 @@ class TemperatureControlHandler(Handler):
 
         # Relay state
         self._currentState = None
+
+        if self.brewer.getModule(SettingsHandler).getBoolean(self.STG_KEY_STATE):
+            logger.debug('restoring state')
+            self.setState(True, rememberChoice=False)
+
+    def onStop(self):
+        # Stop the control (and don't store the choice in DB)
+        if self._running:
+            self.setState(False, rememberChoice=False)
 
     def _run(self):
         '''
@@ -115,7 +128,7 @@ class TemperatureControlHandler(Handler):
 
         self._currentState = state
 
-    def setState(self, state):
+    def setState(self, state, rememberChoice=True):
         '''
         Set temperature control state on or off
         '''
@@ -136,6 +149,10 @@ class TemperatureControlHandler(Handler):
             # Wait for thread to finish
             self._thread.join()
             self._thread = None
+
+        # Remember our state
+        if rememberChoice:
+            self.brewer.getModule(SettingsHandler).putBoolean(self.STG_KEY_STATE, state)
 
     def setTargetTemperature(self, targetTemperatureCelsius):
         '''
