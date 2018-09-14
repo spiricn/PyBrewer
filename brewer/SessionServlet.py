@@ -8,7 +8,7 @@ from ssc.http.HTTP import HDR_COOKIE, HDR_SET_COOKIE, HDR_LOCATION, CODE_REDIREC
 from ssc.servlets.Servlet import Servlet
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.WARN)
 
 class SessionServlet(Servlet):
     '''
@@ -44,7 +44,10 @@ class SessionServlet(Servlet):
 
             if not session:
                 # Session not valid, create a new one below
+                logger.debug('invalid session %r' % sessionId)
                 session = None
+            else:
+                logger.debug('session valid %r' % sessionId)
 
         if not session:
             # Create new session
@@ -53,15 +56,19 @@ class SessionServlet(Servlet):
             # Create a cookie
             cookie = SimpleCookie()
             cookie['id'] = session.id
-            cookie['id']["expires"] = session.expires
+            cookie['id']["max-age"] = session.maxAge
 
             # Get a string representation
             cookie = cookie.output(header='')[1:]
+
+            logger.debug('new cookie: %r' % cookie)
 
             response.addHeader(HDR_SET_COOKIE, cookie)
 
         # If session is not authorized let the login servlet handle this
         if not session.authorized:
+            logger.debug('session not authorized: %r' % str(session))
+
             # Allow only specific REST calls
             if request.url.path in self.LOGGED_OUT_REST_WHITELIST:
                 return False

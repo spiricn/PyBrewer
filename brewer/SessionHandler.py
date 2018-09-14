@@ -9,7 +9,7 @@ from brewer.Handler import Handler
 
 logger = logging.getLogger(__name__)
 
-Session = namedtuple('Session', 'id authorized expires')
+Session = namedtuple('Session', 'id authorized expires maxAge')
 
 
 class SessionHandler(Handler):
@@ -84,7 +84,8 @@ class SessionHandler(Handler):
 
                     return Session(res[0],
                                    res[1],
-                                   expires
+                                   expires,
+                                   SessionHandler.SESSION_DURATION_SEC
                      )
 
     def terminateSession(self, sessionId):
