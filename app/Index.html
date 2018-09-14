@@ -37,9 +37,9 @@ function refreshStatus() {
 
         var status = JSON.parse(xhr.response);
 
-        colorStr = status.temp != invalidTemperature ? (status.temp + 'C' ) : '?';
+        tempStr = status.temp != invalidTemperature ? (status.temp.toFixed(2).replace(/\.0+$/,'') + ' C' ) : '?';
 
-        document.getElementById("temperature").innerHTML = colorStr;
+        document.getElementById("temperature").innerHTML = tempStr;
 
         if(status.temp == invalidTemperature) {
             document.getElementById("temperature").style.color = '#ffffff'
@@ -59,7 +59,6 @@ function refreshStatus() {
 
         document.getElementById("temp_control_running").style.color = status.temperature_controller_running ? onColor : offColor;
 
-        status.temperature_controller_running
 
         setTimeout(refreshStatus,
             1000)
@@ -146,7 +145,7 @@ refreshStatus()
 
     <tr>
         <td> Target temperature </td>
-        <td> ${Brewer.temperatureControl.targetTemperatureCelsius} </td>
+        <td> ${('%.2f' % Brewer.temperatureControl.targetTemperatureCelsius).rstrip('0').rstrip('.')} C </td>
     </tr>
 
     <tr><td></br></td></tr>

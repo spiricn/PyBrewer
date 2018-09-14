@@ -21,12 +21,7 @@ class Utils:
             unit = 'GB'
             size = size / (1024.0 * 1024.0 * 1024.0)
 
-        res = ''
-
-        if size - int(size) == 0.0:
-            res += '%d' % size
-        else:
-            res += '%.2f' % size
+        res = ('%.2f' % size).rstrip('0').rstrip('.')
 
         res += ' ' + unit
 
