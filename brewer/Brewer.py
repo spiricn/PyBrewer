@@ -14,6 +14,7 @@ from brewer.LogHandler import LogHandler
 from brewer.SessionHandler import SessionHandler
 from brewer.TemperatureControlHandler import TemperatureControlHandler
 from brewer.TemperatureReaderHandler import TemperatureReaderHandler
+from brewer.SettingsHandler import SettingsHandler
 from brewer.rest.HistoryREST import HistoryREST
 from brewer.rest.LogREST import LogREST
 from rest.RelayREST import RelayREST
@@ -54,6 +55,7 @@ class Brewer():
 
         # Module classes
         modules = (
+                    SettingsHandler,
                     SessionHandler,
                     LogHandler,
                     DisplayHandler,
