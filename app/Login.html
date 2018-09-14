@@ -1,3 +1,6 @@
+<%include file="Header.html"/>
+
+
 
 <script>
 
@@ -28,13 +31,43 @@ function login() {
     xhr.send(JSON.stringify({username:username, password:password}));
 }
 
+
+
 </script>
+
+</head>
+
+<body>
+
+
+<table>
+<tr><td>PyBrewer ${Brewer.version}</td></tr>
+</table>
+
+<hr style='background-color:#00ff00;border-width:0;color:#00ff00;height:2px;line-height:0;text-align:left;width:50%;'/>
 
 <table>
 
 <tr> <td> Username </td> <td> <input type="text" id="username"> </td> </tr>
-<tr> <td> Password </td> <td> <input type="text" id="password"> </td></tr> 
+<tr> <td> Password </td> <td> <input type="password" id="password"> </td></tr> 
 
-<tr colspan=2> <td><button onclick="javascript:login()"> Login </button> </td></tr>
+<tr colspan=2> <td> <a class="main" id="login_button" href="javascript:login()"> Login </a> </td></tr>
 
 </table>
+
+<script>
+
+function keyListener(event) {
+     event.preventDefault();
+     if (event.keyCode === 13) {
+         document.getElementById("login_button").click();
+     }
+ }
+ 
+
+document.getElementById("username").addEventListener("keyup", keyListener);
+document.getElementById("password").addEventListener("keyup", keyListener);
+</script>
+</body>
+
+</html>

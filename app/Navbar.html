@@ -26,8 +26,6 @@ function logout() {
     xhr.open('POST', 'rest/user/logout');
 
     xhr.onload = function() {
-        alert('logout ok');
-
         location.reload();
     };
 
