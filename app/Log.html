@@ -51,7 +51,7 @@ function clearLogs() {
     xhr.open('POST', 'rest/log/clear');
 
     xhr.onreadystatechange  = function() {
-        location.reload();
+        location.reload(true);
     };
     
     xhr.onerror = function() {

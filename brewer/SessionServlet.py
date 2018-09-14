@@ -14,8 +14,11 @@ class SessionServlet(Servlet):
     '''
     Servlet used to verify sessions and redirect to login page in case session is not authorized
     '''
-
+    # Name of the page used to log in
     LOGIN_PAGE = 'Login.html'
+
+    # Rest APIs allowed while logged out
+    LOGGED_OUT_REST_WHITELIST = ['/rest/user/login']
 
     def __init__(self, brewer, servletContainer, pattern):
         Servlet.__init__(self, servletContainer, pattern)
@@ -59,6 +62,10 @@ class SessionServlet(Servlet):
 
         # If session is not authorized let the login servlet handle this
         if not session.authorized:
+            # Allow only specific REST calls
+            if request.url.path in self.LOGGED_OUT_REST_WHITELIST:
+                return False
+
             # TODO Find a better way of redirecting to login servlet
             for i in self._brewer.server.servlets:
                 if isinstance(i, PageServlet) and i.manifestEntry.filePath == self.LOGIN_PAGE:

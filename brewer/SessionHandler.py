@@ -100,6 +100,8 @@ class SessionHandler(Handler):
                         logger.error('update failed: %d != 1' % rc)
                         return False
 
+                    logger.debug('terminated session')
+
                     return True
 
     def authorizeSession(self, sessionId, username, password):
@@ -150,6 +152,8 @@ class SessionHandler(Handler):
                     if rc != 1:
                         logger.error('update failed: %d != 1 for session %r' % (rc, sessionId))
                         return False
+
+                    logger.debug('authorized session')
 
                     return True
 

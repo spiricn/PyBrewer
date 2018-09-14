@@ -139,7 +139,7 @@ class Brewer():
                                      os.path.join(self._config.root, 'tmp')
          )
 
-        self._server.insertServlet(0, SessionServlet(self, self._server, '^.$'))
+        self._server.insertServlet(0, SessionServlet(self, self._server, '(.*?)'))
 
         # Create REST API
         self._server.addRestAPI()
