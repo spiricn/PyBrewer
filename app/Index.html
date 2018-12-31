@@ -24,6 +24,12 @@ function toggleRelay() {
     xhr.send()
 }
 
+function showHistory(){
+    var e = document.getElementById("historySelect");
+
+    window.location.href = "history?entry=" + e.options[e.selectedIndex].value;
+}
+
 function refreshStatus() {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'rest/status');
@@ -159,18 +165,21 @@ refreshStatus()
     <tr><td></br></td></tr>
     <tr><td colspan=2> <h2> History </h2> </td></tr>
 
-    %for entry in Brewer.getModule(HistoryHandler).getRecords():
+    <tr>
+    <td>
+        <select id="historySelect">
+            %for entry in Brewer.getModule(HistoryHandler).getRecords():
+            <option value="${entry}">${datetime.datetime.strptime(entry, '%Y-%m-%d').strftime('%A %d-%b')} </option>
+            % endfor
+        </select>
+    </td>
 
-<tr>
-<td>
-
-<a class="main" href="/history?entry=${entry}"> ${datetime.datetime.strptime(entry, '%Y-%m-%d').strftime('%A %d-%b')} </a> </td>
-</tr>
-
-% endfor
+    <td>
+        <a class="main" href="javascript:showHistory()">Show</a>
+    </td>
+    </tr>
 
 </table>
-
 
 </body>
 
