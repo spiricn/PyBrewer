@@ -1,6 +1,7 @@
 from ssc.servlets.RestServlet import RestHandler
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from brewer.LogHandler import LogHandler
+from brewer.HistoryHandler import HistoryHandler
 
 
 class HistoryREST:
@@ -23,7 +24,16 @@ class HistoryREST:
                     self._getHistory
                 ),
 
+                RestHandler(
+                    'history/getRecords',
+                    self._getRecords
+                ),
+
         )
+
+    def _getRecords(self, request):
+        return (CODE_OK, MIME_JSON,
+                            {'success' : True, 'res' : self._brewer.getModule(HistoryHandler).getRecords()})
 
     def _getHistory(self, request):
         res = {

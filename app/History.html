@@ -2,14 +2,14 @@
 
 from brewer.HistoryHandler import HistoryHandler
 
-
-
-
 samples = []
+
+
+today = True
 
 if 'entry' in request.params:
     samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
-
+    today = True if  request.params['entry'][0] == Brewer.getModule(HistoryHandler).getRecords()[0] else Flase
 time = [date + 'T' + time for date, time, temperature, target, relay in samples]
 temperature = [temperature for date, time,temperature, target, relay in samples]
 target = [0.0 if not target else target for date, time,temperature, target, relay in samples]
@@ -41,6 +41,9 @@ div {
 
 
 <div>
+
+<a class="main" href="javascript:chart.resetZoom();"> Reset zoom </a>
+
 <canvas id="myChart"></canvas>
 </div>
 
@@ -81,10 +84,6 @@ function update() {
     xhr.send()
 }
 
-% if 'entry' not in request.params:
-update();
-% endif
-
 var time = ${time};
 
 var temperature = ${temperature};
@@ -105,6 +104,10 @@ for(var i=0; i<time.length; i++){
     relayData.push({x: new Date(time[i]), y: relay[i]});
 }
 
+
+% if today:
+update();
+% endif
 
 var chart = new Chart(document.getElementById("myChart"), {
   type: 'line',
@@ -203,7 +206,7 @@ var chart = new Chart(document.getElementById("myChart"), {
         // Zooming directions. Remove the appropriate direction to disable
         // Eg. 'y' would only allow zooming in the y direction
         mode: 'xy'
-    }
+    },
   }
 });
 </script>
