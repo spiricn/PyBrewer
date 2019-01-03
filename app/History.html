@@ -21,6 +21,9 @@ relay = [0 if not relay else 20 for date, time,temperature, target, relay in sam
 <%include file="Header.html"/>
 
 <script src="/js/Chart.js"></script>
+<script src="/js/hammer.min.js"></script>
+<script src="/js/chart.zoom.js"></script>
+<script src="/js/moment.min.js"></script>
 
 <style>
 
@@ -46,6 +49,10 @@ div {
 
 
 <script>
+
+function formatTime(time) {
+    return moment(new Date(time)).format("HH : mm : ss")
+}
 
 function update() {
     var xhr = new XMLHttpRequest();
@@ -98,6 +105,7 @@ for(var i=0; i<time.length; i++){
     relayData.push({x: new Date(time[i]), y: relay[i]});
 }
 
+
 var chart = new Chart(document.getElementById("myChart"), {
   type: 'line',
   data: {
@@ -111,7 +119,7 @@ var chart = new Chart(document.getElementById("myChart"), {
             pointRadius: 0,
             cubicInterpolationMode: 'cubic'
         },
-        
+
         {
             data: targetData,
             label: "Target",
@@ -134,6 +142,7 @@ var chart = new Chart(document.getElementById("myChart"), {
 
     ]
   },
+
   options: {
     title: {
       responsive: true,
@@ -149,20 +158,51 @@ var chart = new Chart(document.getElementById("myChart"), {
                         caretSize: 8,
                         backgroundColor: 'rgba(72, 241, 12, 1)',
                         borderColor: 'rgba(0,0,0,1)',
-                        borderWidth: 4
+                        borderWidth: 4,
+
+                        // Create custom tooltip title)
+                        callbacks: {
+                            title: function(tooltipItem){
+                                return formatTime(tooltipItem[0].xLabel);
+                            }
+                        }
     },
     scales: {
         yAxes: [{
             display: true,
             ticks: {
                 stepSize: 1
-            }
+            },
+            labelString: 'Temperature'
 
         }],
         xAxes: [{
             display: true,
-            type: 'time'
+
+            // NOTE: needs to be linear, otherwise the zoom plugin breaks (known bug)
+            // that's why we can't use time type and have to manually set datapoint labels
+            type: 'linear',
+            labelString: 'Time',
+
+            // Create custom labels for X axis ticks
+            ticks: {
+                callback: function(tick) {
+                    return formatTime(tick);
+                }
+            }
+
         }]
+    },
+
+    // Container for zoom options
+    zoom: {
+        // Boolean to enable zooming
+        enabled: true,
+
+        drag: true,
+        // Zooming directions. Remove the appropriate direction to disable
+        // Eg. 'y' would only allow zooming in the y direction
+        mode: 'xy'
     }
   }
 });
