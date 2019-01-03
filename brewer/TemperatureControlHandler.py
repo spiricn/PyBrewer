@@ -25,6 +25,12 @@ class TemperatureControlHandler(Handler):
     #
     STG_KEY_STATE = 'TEMPERATURE_CONTROL_ON'
 
+    #
+    STG_KEY_MODE = 'TEMPERATURE_CONTROL_MODE'
+
+    #
+    STG_KEY_TARGET_TEMP = 'TEMPERATURE_CONTROL_TARGET'
+
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
 
@@ -41,8 +47,20 @@ class TemperatureControlHandler(Handler):
         # Target temperature we're trying to achieve
         self.targetTemperatureCelsius = self.brewer.config.targetTemperatureCelsius
 
+        modeMap = {
+            'MODE_HEAT' : TemperatureControlAlgorithm.MODE_HEAT,
+            'MODE_COOL' : TemperatureControlAlgorithm.MODE_COOL,
+        }
+
+        modeSetting = self.brewer.getModule(SettingsHandler).getString(self.STG_KEY_MODE,
+                                                                       self.brewer.config.mode)
+        self._mode = modeMap[modeSetting]
+
+        targetCelsius = self.brewer.getModule(SettingsHandler).getFloat(self.STG_KEY_TARGET_TEMP, self.targetTemperatureCelsius)
+
         # Instantiate the algorithm
-        self._controlAlgorithm = TemperatureControlAlgorithm(self.targetTemperatureCelsius)
+        self._controlAlgorithm = TemperatureControlAlgorithm(targetCelsius,
+                                                             self._mode)
 
         # Relay state
         self._currentState = None
@@ -62,7 +80,7 @@ class TemperatureControlHandler(Handler):
         '''
 
         self.brewer.logInfo(__name__,
-                            'control started: %.2f C' % self.targetTemperatureCelsius
+                            'control started: %.2f C (mode=%d)' % (self.targetTemperatureCelsius, self._mode)
         )
 
         # Turn the relay off

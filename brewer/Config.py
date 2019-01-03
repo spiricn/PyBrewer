@@ -87,6 +87,14 @@ class Config:
 
         return self._getValue('VALID_TEMPERATURE_RANGE_CELSIUS', (10, 40))
 
+    @property
+    def mode(self):
+        '''
+        Temperature control mode (heating/cooling)
+        '''
+
+        return self._getValue('TEMPERATURE_CONTROL_MODE', 'HEAT')
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]
