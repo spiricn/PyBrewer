@@ -63,6 +63,28 @@ class SettingsHandler(Handler):
 
         return self._get(key, defaultValue)
 
+    def putFloat(self, key, value):
+        '''
+        Save an integer value
+
+        @param key: Key
+        @param value: Value
+        '''
+
+        self._put(key, value)
+
+    def getFloat(self, key, defaultValue=0.0):
+        '''
+        Get an integer value
+
+        @param key: Key
+        @param defaultValue: Default value
+
+        @return: Actual value or defaultValue if entry doesn't exist 
+        '''
+
+        return float(self._get(key, defaultValue))
+
     def putInteger(self, key, value):
         '''
         Save an integer value
