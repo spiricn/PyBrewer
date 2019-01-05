@@ -101,6 +101,7 @@ class DisplayHandler(Handler):
         Called periodically
         '''
 
+        return
         if not self._enabled:
             return
 

@@ -2,6 +2,7 @@ from ssc.servlets.RestServlet import RestHandler
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from brewer.LogHandler import LogHandler
 from brewer.HistoryHandler import HistoryHandler
+from brewer.HardwareHandler import HardwareHandler, ComponentType
 
 
 class HistoryREST:
@@ -36,11 +37,16 @@ class HistoryREST:
                             {'success' : True, 'res' : self._brewer.getModule(HistoryHandler).getRecords()})
 
     def _getHistory(self, request):
-        res = {
-            'temperature' : self._brewer.temperatureSensor.getTemperatureCelsius(),
-            'target' : self._brewer.config.targetTemperatureCelsius,
-            'relay' : self._brewer.relayPin.output
-        }
+        res = {}
+
+        for component in self._brewer.getModule(HardwareHandler).getComponents():
+
+            if component.componentType == ComponentType.SENSOR:
+                value = component.reader.getTemperatureCelsius()
+            elif component.componentType == ComponentType.SWITCH:
+                value = 1.0 if component.pin.output else 0.0
+
+            res[component.name] = value
 
         return (CODE_OK, MIME_JSON,
                                 {'success' : True, 'res' : res})

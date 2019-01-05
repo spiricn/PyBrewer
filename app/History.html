@@ -1,20 +1,22 @@
 <%
 
 from brewer.HistoryHandler import HistoryHandler
+from brewer.HardwareHandler import HardwareHandler
 
-samples = []
+components = {}
 
 
+colors = [
+    '#ff0000',
+    '#00ff00',
+    '#0000ff',
+    
+]
 today = True
 
 if 'entry' in request.params:
-    samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
+    components = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
     today = True if  request.params['entry'][0] == Brewer.getModule(HistoryHandler).getRecords()[0] else Flase
-time = [date + 'T' + time for date, time, temperature, target, relay in samples]
-temperature = [temperature for date, time,temperature, target, relay in samples]
-target = [0.0 if not target else target for date, time,temperature, target, relay in samples]
-relay = [0 if not relay else 20 for date, time,temperature, target, relay in samples]
-
 
 %>
 
@@ -66,83 +68,62 @@ function update() {
 
         var time = new Date();
 
-        tempData.push({x: time, y: res.temperature});
-        targetData.push({x: time, y: res.target});
-        relayData.push({x: time, y: res.relay ? 20 : 0});
+        for(var component in res){
+            data["component" + component.replace(' ', '_')].push(
+                    {x : time, y : res[component]});
+        }
 
         chart.update();
 
-        setTimeout(update, 2000);
+        setTimeout(update, 1000);
     }
 
     xhr.onerror = function() {
         console.log("error fetching temperature");
 
-        setTimeout(update, 1000);
+        setTimeout(update, 100);
     }
 
     xhr.send()
 }
 
-var time = ${time};
+var data = {};
 
-var temperature = ${temperature};
-
-var target = ${target};
-
-var relay= ${relay};
-
-var tempData = [];
-
-var targetData = [];
-
-var relayData = [];
-
-for(var i=0; i<time.length; i++){
-    tempData.push({x: new Date(time[i]), y: temperature[i]});
-    targetData.push({x: new Date(time[i]), y: target[i]});
-    relayData.push({x: new Date(time[i]), y: relay[i]});
-}
+% for component in Brewer.getModule(HardwareHandler).getComponents():
+    data["component${component.name.replace(' ', '_')}"] = [
+        
+        % if component.name in components:
+            %for sample in components[component.name]:
+                { x: new Date("${sample[0]}T${sample[1]}"), y: ${sample[2]} },
+            % endfor
+        % endif
+    ];
+    
+% endfor
 
 
 % if today:
 update();
 % endif
 
+
 var chart = new Chart(document.getElementById("myChart"), {
   type: 'line',
   data: {
     datasets: [
+        % for index, component in enumerate(Brewer.getModule(HardwareHandler).getComponents()):
+            
         {
-            data: tempData,
-            label: "Temperature",
-            borderColor: "#00FF00",
+            data: data["component${component.name.replace(' ', '_')}"],
+            label: "${component.name}",
+            borderColor: "${colors[index % len(colors)]}",
             fill: false,
             showLine: true,
             pointRadius: 0,
             cubicInterpolationMode: 'cubic'
         },
 
-        {
-            data: targetData,
-            label: "Target",
-            borderColor: "#FF0000",
-            fill: false,
-            showLine: true,
-            pointRadius: 0,
-            cubicInterpolationMode: 'cubic'
-        },
-        
-        {
-            data: relayData,
-            label: "Relay",
-            borderColor: "#0000FF",
-            fill: false,
-            showLine: true,
-            pointRadius: 0,
-            cubicInterpolationMode: 'cubic'
-        },
-
+        % endfor
     ]
   },
 

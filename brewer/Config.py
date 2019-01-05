@@ -95,6 +95,26 @@ class Config:
 
         return self._getValue('TEMPERATURE_CONTROL_MODE', 'HEAT')
 
+    @property
+    def switches(self):
+        return self._getValue('SWITCHES', [])
+
+    @property
+    def sensors(self):
+        return self._getValue('TEMPERATURE_SENSORS', [])
+
+    @property
+    def wortSensor(self):
+        return self._getValue('WORT_SENSOR', None)
+
+    @property
+    def externalSensor(self):
+        return self._getValue('EXTERNAL_SENSOR', None)
+
+    @property
+    def thermalSwitch(self):
+        return self._getValue('THERMAL_SWITCH', None)
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]

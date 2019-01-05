@@ -1,6 +1,7 @@
 <%
 
 from brewer.HistoryHandler import HistoryHandler
+from brewer.HardwareHandler import HardwareHandler, ComponentType
 
 import os
 import datetime
@@ -13,9 +14,9 @@ from brewer.Utils import Utils
 
 <script>
 
-function toggleRelay() {
+function toggleSwitch(name) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/relay/toggle');
+    xhr.open('POST', 'rest/relay/toggle?name=' + name);
 
     xhr.onerror = function() {
         alert('toggle failed (error: ' + xhr.status + ')');
@@ -35,50 +36,33 @@ function refreshStatus() {
     xhr.open('POST', 'rest/status');
 
     xhr.onload = function() {
+        
         offColor = '#FFFF33'
 
         onColor = '#00AAff'
 
         invalidTemperature = 99999999
 
-        var status = JSON.parse(xhr.response);
+        var status = JSON.parse(xhr.response)['res'];
+        
+        for(var i=0; i<status.length; i++){
+            var element = document.getElementById(status[i].name);
+            
+            if(status[i].type == 'SWITCH') {
+                isOn = status[i].value != 0.0;
 
-        tempStr = status.temp != invalidTemperature ? (status.temp.toFixed(2).replace(/\.0+$/,'') + ' C' ) : '?';
-
-        document.getElementById("temperature").innerHTML = tempStr;
-
-        if(status.temp == invalidTemperature) {
-            document.getElementById("temperature").style.color = '#ffffff'
+                element.style.color = isOn ? onColor : offColor;
+                element.innerHTML = isOn ? "ON" : "OFF";
+                
+            }
+            else {
+                element.innerHTML = status[i].value;
+            }
+            
         }
-        else if(status.temp >= status.temperature_controller_target_temp) {
-            document.getElementById("temperature").style.color = '#ff0000'
-        }
-        else{
-            document.getElementById("temperature").style.color = '#00ffff'
-        }
-
-        document.getElementById("relay_state").innerHTML = (status.relay_on ? 'ON' : 'OFF');
-
-        document.getElementById("relay_state").style.color = status.relay_on ? onColor : offColor;
-
-        document.getElementById("temp_control_running").innerHTML = (status.temperature_controller_running ? 'ON' : 'OFF');
-
-        document.getElementById("temp_control_running").style.color = status.temperature_controller_running ? onColor : offColor;
-
 
         setTimeout(refreshStatus,
             1000)
-    };
-
-    xhr.send()
-}
-
-function toggleTempControl() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/temperature/controller/toggle');
-
-    xhr.onerror = function() {
-        alert('toggle failed (error: ' + xhr.status + ')');
     };
 
     xhr.send()
@@ -124,35 +108,20 @@ refreshStatus()
 
 <table>
 
-    <tr><td colspan=2> <h2> Temperature </h2> </td></tr>
+    <tr><td colspan=2> <h2> Components </h2> </td></tr>
 
-    <tr>
-        <td> Probe temperature </td>
-        <td id="temperature"> </td>
-    </tr>
 
-    <tr><td></br></td></tr>
-    <tr><td colspan=2> <h2> Relay </h2> </td></tr>
-
-    <tr>
-        <td> Relay state </td>
-        <td id="relay_state"> </td>
-        <td> <a class="main" href="javascript:toggleRelay();"> toggle </a> </td>
-    </tr>
-
-    <tr><td></br></td></tr>
-    <tr><td colspan=2> <h2> Controller </h2> </td></tr>
-
-    <tr>
-        <td> Temperature control </td>
-        <td id="temp_control_running"> </td>
-        <td> <a class="main" href="javascript:toggleTempControl();"> toggle </a> </td>
-    </tr>
-
-    <tr>
-        <td> Target temperature </td>
-        <td> ${('%.2f' % Brewer.temperatureControl.targetTemperatureCelsius).rstrip('0').rstrip('.')} C </td>
-    </tr>
+    %for component in Brewer.getModule(HardwareHandler).getComponents():
+        <tr>
+            <td> ${component.componentType.name} </td>
+            <td> ${component.name} </td>
+            <td id="${component.name}"> </td>
+            
+            % if component.componentType == ComponentType.SWITCH:
+            <td> <a class="main" href="javascript:toggleSwitch('${component.name}');"> toggle </a> </td>
+            %endif
+        </tr>
+    % endfor
 
     <tr><td></br></td></tr>
     <tr><td colspan=2> <h2> Misc </h2> </td></tr>

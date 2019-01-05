@@ -1,11 +1,10 @@
-from brewer.Handler import Handler
 from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 import time
 
 from threading import Lock
 
 
-class TemperatureReaderHandler(Handler):
+class TemperatureReader():
     '''
     Class which handles multi-threaded temperature reads and caching
     '''
@@ -13,9 +12,7 @@ class TemperatureReaderHandler(Handler):
     # Maximum read frequency
     TEMP_READ_PERIOD = 2
 
-    def __init__(self, brewer):
-        Handler.__init__(self, brewer)
-
+    def __init__(self, deviceId, validTempRange, errorCallback=None):
         # Global lock
         self._lock = Lock()
 
@@ -26,9 +23,13 @@ class TemperatureReaderHandler(Handler):
         self._cachedTemp = None
 
         # Temperature sensor
-        self._temperatureSensor = TemperatureSensor(self.brewer.config.probeDeviceId)
+        self._temperatureSensor = TemperatureSensor(deviceId)
 
-        self._validTemperatureRange = self.brewer.config.validTemperatureRangeCelsius
+        self._deviceId = deviceId
+
+        self._validTemperatureRange = validTempRange
+        
+        self._errorCallback = errorCallback
 
     def getTemperatureCelsius(self):
         '''
@@ -50,7 +51,9 @@ class TemperatureReaderHandler(Handler):
 
                 # Check if the temperature is in valid range
                 if not self._validTempC(self._cachedTemp):
-                    self.brewer.logError(__name__, 'temperature read failure: ' + str(self._cachedTemp) + ' C')
+                    if self._errorCallback != None:
+                        self._errorCallback('temperature read failure: ' + str(self._cachedTemp) + ' C / ' + self._deviceId)
+
                     self._cachedTemp = TemperatureSensor.TEMP_INVALID_C
 
             return self._cachedTemp

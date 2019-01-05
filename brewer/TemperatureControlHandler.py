@@ -6,6 +6,7 @@ from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 from brewer.Handler import Handler
 from brewer.TemperatureControlAlgorithm import TemperatureControlAlgorithm
 from brewer.SettingsHandler import SettingsHandler
+from brewer.HardwareHandler import HardwareHandler, ComponentType
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +36,21 @@ class TemperatureControlHandler(Handler):
         Handler.__init__(self, brewer)
 
     def onStart(self):
+        self.brewer.getModule(HardwareHandler).addCustom(self)
+
         # Relay controller pin
-        self._relayPin = self.brewer.relayPin
+        self._relayPin = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.thermalSwitch)
+
+        if not self._relayPin:
+            raise RuntimeError("Unable to find switch with name %r", str(self.brewer.config.thermalSwitch))
+
+        self._relayPin = self._relayPin.pin
 
         # Temperature sensor
-        self._temperatureSensor = self.brewer.temperatureSensor
+        self._externalSensor = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.externalSensor)
+        if not self._externalSensor:
+            raise RuntimeError("Unable to find sensor with name %r", str(self.brewer.config.externalSensor))
+        self._externalSensor = self._externalSensor.reader
 
         # Controller running or not
         self._running = False
@@ -91,7 +102,7 @@ class TemperatureControlHandler(Handler):
         # Main loop
         while self._running:
             # Read the current temperature from probe
-            currentTemperatureCelsius = self._temperatureSensor.getTemperatureCelsius()
+            currentTemperatureCelsius = self._externalSensor.getTemperatureCelsius()
 
             # Check if the read failed
             if currentTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
@@ -130,6 +141,25 @@ class TemperatureControlHandler(Handler):
         self.brewer.logInfo(__name__,
                             'control stopped'
         )
+
+    @property
+    def componentType(self):
+        return ComponentType.SWITCH
+
+    @property
+    def name(self):
+        return "TemperatureController"
+
+    @property
+    def pin(self):
+        return self
+
+    @property
+    def output(self):
+        return self._running
+
+    def setOutput(self, state):
+        self.setState(state)
 
     def _setRelayState(self, state):
         '''

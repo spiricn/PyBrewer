@@ -3,6 +3,7 @@ import datetime
 import logging
 from contextlib import closing
 from tmp.brewer.hw.TemperatureSensor import TemperatureSensor
+from brewer.HardwareHandler import HardwareHandler, ComponentType
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +32,9 @@ class HistoryHandler(Handler):
     COL_TIME = 'time'
 
     # Sample actual temperature
-    COL_TEMPERATURE = 'temperature'
+    COL_VALUE = 'value'
 
-    # Sample target temperature
-    COL_TARGET = 'target'
-
-    # Indicates if the relay was on during the sampling
-    COL_RELAY = 'relay'
+    COL_COMPONENT = 'component'
 
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
@@ -53,28 +50,31 @@ class HistoryHandler(Handler):
             # Not yet time to update
             return
 
-        # Get current temperature reading
-        tempC = self.brewer.temperatureSensor.getTemperatureCelsius()
-
         # Get current time
         currentDate = datetime.datetime.now()
 
-        # Create a temperature/seconds sample
-        sample = (currentDate.strftime(self.DATE_FORMAT),
-                  currentDate.strftime(self.TIME_FORMAT),
-                  tempC,
-                  self.brewer.config.targetTemperatureCelsius,
-                  1 if self.brewer.relayPin.output else 0
-        )
+        for component in self.brewer.getModule(HardwareHandler).getComponents():
 
-        # Insert into database
-        with self.brewer.database as conn:
-            with conn:
-                with closing(conn.cursor()) as cursor:
-                    cursor.execute('INSERT INTO %s VALUES (?,?,?,?,?)'
-                                    % (self.TABLE_SAMPLES,),
-                                    sample
-                    )
+            if component.componentType == ComponentType.SENSOR:
+                value = component.reader.getTemperatureCelsius()
+            elif component.componentType == ComponentType.SWITCH:
+                value = 1.0 if component.pin.output else 0.0
+
+            # Create a temperature/seconds sample
+            sample = (currentDate.strftime(self.DATE_FORMAT),
+                      currentDate.strftime(self.TIME_FORMAT),
+                      value,
+                      component.name
+            )
+
+            # Insert into database
+            with self.brewer.database as conn:
+                with conn:
+                    with closing(conn.cursor()) as cursor:
+                        cursor.execute('INSERT INTO %s VALUES (?,?,?,?)'
+                                        % (self.TABLE_SAMPLES,),
+                                        sample
+                        )
 
         # Reset time
         self._elapsedSec = 0
@@ -104,18 +104,34 @@ class HistoryHandler(Handler):
 
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                res = cursor.execute('SELECT %s, %s, %s, %s, %s FROM %s WHERE %s=? ORDER BY %s '
-                              % (self.COL_DATE, self.COL_TIME, self.COL_TEMPERATURE, self.COL_TARGET, self.COL_RELAY, self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME),
-                              (date,)
+                res = cursor.execute('SELECT DISTINCT(%s) FROM %s WHERE %s=? ORDER BY %s'
+                  % (self.COL_COMPONENT, self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME),
+                  (date,)
                 )
 
-                return [(date, time, temperature, target, relay) for date, time, temperature, target, relay in res.fetchall() if temperature != TemperatureSensor.TEMP_INVALID_C]
+                components = [i[0] for i in res.fetchall()]
+
+                result = {}
+
+                for component in components:
+                    samples = []
+
+                    res = cursor.execute('SELECT %s, %s, %s FROM %s WHERE %s=? AND %s=? ORDER BY %s'
+                                % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.TABLE_SAMPLES, self.COL_DATE, self.COL_COMPONENT, self.COL_TIME),
+                                (date, component)
+                    )
+#
+                    samples = [(date, time, value) for date, time, value in res.fetchall()]
+
+                    result[component] = samples
+
+                return result
 
     def onStart(self):
         # Create table if it does not exist
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('CREATE TABLE IF NOT EXISTS %s (%s text, %s text, %s real, %s real, %s integer)'
-                                   % (self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME, self.COL_TEMPERATURE, self.COL_TARGET, self.COL_RELAY)
+                    cursor.execute('CREATE TABLE IF NOT EXISTS %s (%s text, %s text, %s real, %s text)'
+                                   % (self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.COL_COMPONENT)
                     )

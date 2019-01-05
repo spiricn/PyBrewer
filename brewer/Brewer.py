@@ -26,6 +26,7 @@ from ssc.servlets.RestServlet import RestHandler
 from ssc.servlets.ServletContainer import ServletContainer
 from brewer.SessionServlet import SessionServlet
 from brewer.rest.UserREST import UserREST
+from brewer.HardwareHandler import HardwareHandler, ComponentType
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +49,6 @@ class Brewer():
         # Configuration
         self._config = config
 
-        # Relay control
-        self._relayPin = IOPin.createOutput(self._config.relayGpioPinNumber)
-
         self._mainThread = None
 
         # Module classes
@@ -61,7 +59,7 @@ class Brewer():
                     DisplayHandler,
                     HistoryHandler,
                     TemperatureControlHandler,
-                    TemperatureReaderHandler
+                    HardwareHandler
         )
 
         self._modules = []
@@ -69,6 +67,18 @@ class Brewer():
         # Instantiate modules
         for module in modules:
             self._modules.append(module(self))
+
+        # Add switches
+        for switch in self.config.switches:
+            self.getModule(HardwareHandler).addSwitch(switch['NAME'],
+                                                      switch['GPIO_PIN']
+                                                      )
+
+        # Add sensors
+        for sensor in self.config.sensors:
+            self.getModule(HardwareHandler).addSensor(sensor['NAME'],
+                                                      sensor['DEV_ID']
+                                                      )
 
     @property
     def database(self):
@@ -185,22 +195,6 @@ class Brewer():
         return (CODE_OK, MIME_JSON, {'success' : True})
 
     @property
-    def temperatureSensor(self):
-        '''
-        Temperature sensor
-        '''
-
-        return self.getModule(TemperatureReaderHandler)
-
-    @property
-    def relayPin(self):
-        '''
-        Relay control pin
-        '''
-
-        return self._relayPin
-
-    @property
     def temperatureControl(self):
         '''
         Temperature controller
@@ -231,14 +225,22 @@ class Brewer():
         Reads the status of everything
         '''
 
-        status = {
-            'relay_on' : self._relayPin.output,
-            'temperature_controller_running' : self.temperatureControl.running,
-            'temperature_controller_target_temp' : self.temperatureControl.targetTemperatureCelsius,
-            'temp' : self.temperatureSensor.getTemperatureCelsius(),
-        }
+        status = []
 
-        return (CODE_OK, MIME_JSON, status)
+        for component in self.getModule(HardwareHandler).getComponents():
+
+            if component.componentType == ComponentType.SENSOR:
+                value = component.reader.getTemperatureCelsius()
+            elif component.componentType == ComponentType.SWITCH:
+                value = 1.0 if component.pin.output else 0.0
+
+            status.append({
+                "value" : value,
+                "name" : component.name,
+                "type" : component.componentType.name
+            })
+
+        return (CODE_OK, MIME_JSON, {'success' : True, 'res' : status})
 
     @property
     def version(self):

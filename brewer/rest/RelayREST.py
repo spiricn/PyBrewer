@@ -1,5 +1,6 @@
 from ssc.servlets.RestServlet import RestHandler
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
+from brewer.HardwareHandler import HardwareHandler
 
 
 class RelayREST:
@@ -35,9 +36,10 @@ class RelayREST:
         Toggle the relay state
         '''
 
-        if self._brewer.temperatureControl.running:
-            return (CODE_BAD_REQUEST, MIME_JSON, {'success' : False, 'message' : 'Automatic temperature controller running'})
+        switchName = request.params['name'][0]
 
-        self._brewer.relayPin.setOutput(not self._brewer.relayPin.output)
+        pin = self._brewer.getModule(HardwareHandler).findComponent(switchName).pin
+
+        pin.setOutput(not pin.output)
 
         return (CODE_OK, MIME_JSON, {'success' : True})
