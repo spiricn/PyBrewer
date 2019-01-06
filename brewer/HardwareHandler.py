@@ -16,7 +16,9 @@ class HardwareHandler(Handler):
         self._addComponent(component)
 
     def getComponents(self, componentType : ComponentType=None):
-        return [component for component in self._components.values() if (componentType == None or component.componentType == componentType)]
+        components = [component for component in self._components.values() if (componentType == None or component.componentType == componentType)]
+
+        return sorted(components, key=lambda x: x.componentType.value)
 
     def findComponent(self, name : str):
         if name in self._components:
