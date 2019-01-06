@@ -63,8 +63,15 @@ function refreshStatus() {
         }
 
         setTimeout(refreshStatus,
-            1000)
+            100)
     };
+
+    xhr.onerror = function() {
+        console.log("error fetching status");
+
+        setTimeout(refreshStatus,
+                500)
+    }
 
     xhr.send()
 }
