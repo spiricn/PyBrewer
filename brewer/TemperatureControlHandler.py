@@ -93,8 +93,8 @@ class TemperatureControlHandler(Handler):
         self.targetTemperatureCelsius = self.brewer.config.targetTemperatureCelsius
 
         modeMap = {
-            'MODE_HEAT' : TemperatureControlAlgorithm.MODE_HEAT,
-            'MODE_COOL' : TemperatureControlAlgorithm.MODE_COOL,
+            'MODE_HEAT' : TemperatureControlAlgorithm.Mode.HEAT,
+            'MODE_COOL' : TemperatureControlAlgorithm.Mode.COOL,
         }
 
         modeSetting = self.brewer.getModule(SettingsHandler).getString(self.STG_KEY_MODE,
@@ -126,11 +126,12 @@ class TemperatureControlHandler(Handler):
         '''
 
         self.brewer.logInfo(__name__,
-                            'control started: %.2f C (mode=%d)' % (self.targetTemperatureCelsius, self._mode)
+                            'control started: %.2f C (%s)' % (self.targetTemperatureCelsius, str(self._mode))
         )
 
-        # Turn the relay off
-        self._setRelayState(False)
+        # Turn everything off
+        self._thermalSwitch.setOn(False)
+        self._pumpSwitch.setOn(False)
 
         errorLogged = False
 
@@ -146,8 +147,11 @@ class TemperatureControlHandler(Handler):
                 if not errorLogged:
                     self.brewer.logError(__name__, 'failure reading temperature value, shutting off')
 
-                    # Shut the relay off
-                    self._setRelayState(False)
+                    # Turn heating/cooling off
+                    self._thermalSwitch.setOn(False)
+
+                    # Keep the pump running
+                    self._pumpSwitch.setOn(True)
 
                     # Wait before trying again
                     sleep(self.ERROR_SLEEP_TIME_SEC)
@@ -164,33 +168,22 @@ class TemperatureControlHandler(Handler):
 
             errorLogged = False
 
-            # Control the relasy
-            self._setRelayState(self._controlAlgorithm.control(currentTemperatureCelsius))
+            # Control the relay
+            thermalSwitchOn, pumpOn = self._controlAlgorithm.control(currentTemperatureCelsius)
+
+            self._thermalSwitch.setOn(thermalSwitchOn)
+            self._pumpSwitch.setOn(pumpOn)
 
             # Wait a bit
             sleep(self.SLEEP_TIME_SEC)
 
-        # Turn the relay off
-        self._setRelayState(False)
+        # Turn everything off
+        self._thermalSwitch.setOn(False)
+        self._pumpSwitch.setOn(False)
 
         self.brewer.logInfo(__name__,
                             'control stopped'
         )
-
-    def _setRelayState(self, state):
-        '''
-        Turns the relay on or off
-        '''
-
-        # Ignore same state changes
-        if self._currentState != None and self._currentState == state:
-            return
-
-        # Change state
-        logger.debug('setting relay state: ' + str(state))
-        self._thermalSwitch.setOn(state)
-
-        self._currentState = state
 
     def setState(self, state, rememberChoice=True):
         '''
