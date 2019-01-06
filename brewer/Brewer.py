@@ -87,7 +87,7 @@ class Brewer():
                 ProbeSensor(
                     sensor['NAME'],
                     sensor['COLOR'],
-                    TemperatureReader(sensor['DEV_ID'], self.config.validTemperatureRangeCelsius, lambda errorMessage: self.logError(errorMessage))
+                    TemperatureReader(sensor['DEV_ID'], self.config.validTemperatureRangeCelsius, lambda errorMessage: self.logError("TemperatureReader", errorMessage))
                     )
                 )
 
