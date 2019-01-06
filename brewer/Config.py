@@ -123,6 +123,14 @@ class Config:
     def temperatureHysteresisC(self):
         return self._getValue('TEMPERATURE_HYSTERESIS_C', 0.3)
 
+    @property
+    def dispersionDurationSec(self):
+        return self._getValue('DISPERSION_DURATION_SEC', 1 * 60)
+
+    @property
+    def dispersionPeriodSec(self):
+        return self._getValue('DISPERSION_PERIOD_SEC', 10 * 60)
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]

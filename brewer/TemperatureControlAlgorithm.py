@@ -10,10 +10,6 @@ class TemperatureControlAlgorithm:
     Temperature control algorithm - decides when to turn the cooling on or off
     '''
 
-    DISPERSION_PERIOD_SEC = 30
-
-    DISPERSION_DURATION = 10
-
     class Mode(Enum):
         HEAT = 1
         COOL = 2
@@ -28,7 +24,8 @@ class TemperatureControlAlgorithm:
         # Dispersing heat (fan/pump)
         THERMAL_DISPERSION = 3
 
-    def __init__(self, targetTemperatureCelsius : float, mode, hysteresis : float):
+    def __init__(self, targetTemperatureCelsius : float, mode, hysteresis : float,
+                 dispersionPeriodSec : float, dispersionDurationSec : float):
         self._targetTemperatureCelsius = targetTemperatureCelsius
         self._mode = mode
         # On by default
@@ -37,6 +34,10 @@ class TemperatureControlAlgorithm:
         self._setState(self.State.THERMAL_DISPERSION)
 
         self._hysteresis = hysteresis
+
+        self._dispersionPeriodSec = dispersionPeriodSec
+
+        self._dispersionDurationSec = dispersionDurationSec
 
         self._lastTime = time.time()
 
@@ -72,7 +73,7 @@ class TemperatureControlAlgorithm:
                 self._dispersionSec += elapsedSec
 
                 if self._state == self.State.THERMAL_DISPERSION:
-                    if self._dispersionSec > self.DISPERSION_DURATION:
+                    if self._dispersionSec > self._dispersionDurationSec:
                         # Dispersion done, switch to idle
                         self._setState(self.State.IDLE)
                         self._dispersionSec = 0
@@ -81,7 +82,7 @@ class TemperatureControlAlgorithm:
                         pass
 
                 else:
-                    if self._dispersionSec > self.DISPERSION_PERIOD_SEC:
+                    if self._dispersionSec > self._dispersionPeriodSec:
                         # Start dispersion
                         self._setState(self.State.THERMAL_DISPERSION)
                         self._dispersionSec = 0
