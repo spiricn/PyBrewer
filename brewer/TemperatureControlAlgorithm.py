@@ -8,17 +8,16 @@ class TemperatureControlAlgorithm:
     Temperature control algorithm - decides when to turn the cooling on or off
     '''
 
-    # Temperature epsilon after which the relay will turn off
-    EPSILON_C = 0.3
-
     MODE_HEAT, \
     MODE_COOL = range(2)
 
-    def __init__(self, targetTemperatureCelsius, mode):
+    def __init__(self, targetTemperatureCelsius, mode, hysteresis):
         self._targetTemperatureCelsius = targetTemperatureCelsius
         self._mode = mode
         # On by default
         self._on = True
+
+        self._hysteresis = hysteresis
 
     def control(self, currentTemperatureC):
         if self._on:
@@ -34,8 +33,8 @@ class TemperatureControlAlgorithm:
 
         else:
             # Detect when temperature dropped below/above acceptable
-            if (self._mode == self.MODE_HEAT and currentTemperatureC <= self._targetTemperatureCelsius - self.EPSILON_C) \
-                or (self._mode == self.MODE_COOL and currentTemperatureC >= self._targetTemperatureCelsius + self.EPSILON_C):
+            if (self._mode == self.MODE_HEAT and currentTemperatureC <= self._targetTemperatureCelsius - self._hysteresis) \
+                or (self._mode == self.MODE_COOL and currentTemperatureC >= self._targetTemperatureCelsius + self._hysteresis):
 
                 self._on = True
                 return True

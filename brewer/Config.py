@@ -115,6 +115,10 @@ class Config:
     def thermalSwitch(self):
         return self._getValue('THERMAL_SWITCH', None)
 
+    @property
+    def temperatureHysteresisC(self):
+        return self._getValue('TEMPERATURE_HYSTERESIS_C', 0.3)
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]
