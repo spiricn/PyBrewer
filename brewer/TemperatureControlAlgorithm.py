@@ -27,11 +27,8 @@ class TemperatureControlAlgorithm:
     def __init__(self, targetTemperatureCelsius : float, mode, hysteresis : float,
                  dispersionPeriodSec : float, dispersionDurationSec : float):
         self._targetTemperatureCelsius = targetTemperatureCelsius
-        self._mode = mode
-        # On by default
-        self._state = None
 
-        self._setState(self.State.THERMAL_DISPERSION)
+        self._mode = mode
 
         self._hysteresis = hysteresis
 
@@ -39,12 +36,18 @@ class TemperatureControlAlgorithm:
 
         self._dispersionDurationSec = dispersionDurationSec
 
+        self._state = None
+
+    def startControl(self):
+        self._setState(self.State.THERMAL_DISPERSION)
+
         self._lastTime = time.time()
 
         self._dispersionSec = 0
 
-    def control(self, currentTemperatureC : float):
+        return self._getState()
 
+    def control(self, currentTemperatureC : float):
         currTime = time.time()
 
         elapsedSec = currTime - self._lastTime
@@ -90,15 +93,20 @@ class TemperatureControlAlgorithm:
                         # We're idle so keep everything off
                         pass
 
-            return self._getState()
+        return self._getState()
 
     def _getState(self):
         if self._state == self.State.IDLE:
             return (False, False)
+
         elif self._state == self.State.THERMAL_DISPERSION:
             return (False, True)
+
         elif self._state == self.State.THERMAL_ACTIVE:
             return (True, True)
+
+        else:
+            raise RuntimeError('Unexpected state %r' % str(self._state))
 
     def _setState(self, state):
         logger.debug('state: %s -> %s' % (str(self._state), str(state)))

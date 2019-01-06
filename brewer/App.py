@@ -28,7 +28,7 @@ def main():
 
     # Setup logging
     logging.basicConfig(level=logging.DEBUG,
-            format='%(levelname)s/%(name)s: %(message)s')
+            format='%(asctime)s %(levelname)s/%(name)s: %(message)s')
 
     parser = argparse.ArgumentParser()
     parser.add_argument('config', help='Configuration file path')

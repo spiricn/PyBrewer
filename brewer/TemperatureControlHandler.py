@@ -132,9 +132,11 @@ class TemperatureControlHandler(Handler):
                             'control started: %.2f C (%s)' % (self.targetTemperatureCelsius, str(self._mode))
         )
 
-        # Turn everything off
-        self._thermalSwitch.setOn(False)
-        self._pumpSwitch.setOn(False)
+        # Start control
+        thermalSwitchOn, pumpOn = self._controlAlgorithm.startControl()
+
+        self._thermalSwitch.setOn(thermalSwitchOn)
+        self._pumpSwitch.setOn(pumpOn)
 
         errorLogged = False
 
