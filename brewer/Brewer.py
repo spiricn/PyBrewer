@@ -59,7 +59,6 @@ class Brewer():
                     SettingsHandler,
                     SessionHandler,
                     LogHandler,
-                    DisplayHandler,
                     HistoryHandler,
                     TemperatureControlHandler,
                     HardwareHandler
