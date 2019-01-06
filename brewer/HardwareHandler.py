@@ -5,8 +5,8 @@ from brewer.Handler import Handler
 import logging
 from enum import Enum
 
-Switch = namedtuple('Switch', 'name, componentType, pin')
-Sensor = namedtuple('Sensor', 'name, componentType, reader')
+Switch = namedtuple('Switch', 'name, componentType, pin, color')
+Sensor = namedtuple('Sensor', 'name, componentType, reader, color')
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +23,17 @@ class HardwareHandler(Handler):
 
         self._components = {}
 
-    def addSwitch(self, name : str, pinNumber : int):
+    def addSwitch(self, name : str, pinNumber : int, color : str):
         self._addComponent(
-            Switch(name, ComponentType.SWITCH, IOPin.createOutput(pinNumber))
+            Switch(name, ComponentType.SWITCH, IOPin.createOutput(pinNumber), color)
         )
 
-    def addSensor(self, name : str, deviceId : str):
+    def addSensor(self, name : str, deviceId : str, color : str):
         self._addComponent(
-            Sensor(name, ComponentType.SENSOR, TemperatureReader(deviceId, self.brewer.config.validTemperatureRangeCelsius, lambda errorMessage: self.brewer.logError(errorMessage)))
+            Sensor(name, ComponentType.SENSOR, 
+                   TemperatureReader(deviceId, self.brewer.config.validTemperatureRangeCelsius, lambda errorMessage: self.brewer.logError(errorMessage)),
+                   color
+                   )
         )
 
     def addCustom(self, component):

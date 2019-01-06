@@ -114,7 +114,7 @@ refreshStatus()
     %for component in Brewer.getModule(HardwareHandler).getComponents():
         <tr>
             <td> ${component.componentType.name} </td>
-            <td> ${component.name} </td>
+            <td style="color: ${component.color}"> ${component.name} </td>
             <td id="${component.name}"> </td>
             
             % if component.componentType == ComponentType.SWITCH:

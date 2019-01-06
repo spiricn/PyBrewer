@@ -6,12 +6,6 @@ from brewer.HardwareHandler import HardwareHandler
 components = {}
 
 
-colors = [
-    '#ff0000',
-    '#00ff00',
-    '#0000ff',
-    
-]
 today = True
 
 if 'entry' in request.params:
@@ -116,7 +110,7 @@ var chart = new Chart(document.getElementById("myChart"), {
         {
             data: data["component${component.name.replace(' ', '_')}"],
             label: "${component.name}",
-            borderColor: "${colors[index % len(colors)]}",
+            borderColor: "${component.color}",
             fill: false,
             showLine: true,
             pointRadius: 0,

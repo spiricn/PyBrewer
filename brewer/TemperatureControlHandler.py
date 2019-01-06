@@ -85,6 +85,10 @@ class TemperatureControlHandler(Handler):
         if self._running:
             self.setState(False, rememberChoice=False)
 
+    @property
+    def color(self):
+        return 'rgb(128, 128, 128)'
+
     def _run(self):
         '''
         Start the controller

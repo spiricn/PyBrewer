@@ -71,13 +71,15 @@ class Brewer():
         # Add switches
         for switch in self.config.switches:
             self.getModule(HardwareHandler).addSwitch(switch['NAME'],
-                                                      switch['GPIO_PIN']
+                                                      switch['GPIO_PIN'],
+                                                      switch['COLOR']
                                                       )
 
         # Add sensors
         for sensor in self.config.sensors:
             self.getModule(HardwareHandler).addSensor(sensor['NAME'],
-                                                      sensor['DEV_ID']
+                                                      sensor['DEV_ID'],
+                                                      sensor['COLOR']
                                                       )
 
     @property
