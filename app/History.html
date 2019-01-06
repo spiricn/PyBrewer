@@ -1,10 +1,11 @@
 <%
 
 from brewer.HistoryHandler import HistoryHandler
-from brewer.HardwareHandler import HardwareHandler
+from brewer.HardwareHandler import HardwareHandler, ComponentType
+
+sensorValueMultiplier = 17
 
 components = {}
-
 
 today = True
 
@@ -63,13 +64,16 @@ function update() {
         var time = new Date();
 
         for(var component in res){
+            var multiplier = res[component].type == 'SWITCH' ? ${sensorValueMultiplier} : 1.0;
+            
             data["component" + component.replace(' ', '_')].push(
-                    {x : time, y : res[component]});
+                    {x : time, y : res[component].value * multiplier
+                    });
         }
 
         chart.update();
 
-        setTimeout(update, 1000);
+        setTimeout(update, 100);
     }
 
     xhr.onerror = function() {
@@ -88,7 +92,12 @@ var data = {};
         
         % if component.name in components:
             %for sample in components[component.name]:
-                { x: new Date("${sample[0]}T${sample[1]}"), y: ${sample[2]} },
+                { x: new Date("${sample[0]}T${sample[1]}"), y: ${sample[2]}
+
+            % if component.componentType == ComponentType.SWITCH:
+                * ${sensorValueMultiplier}
+            % endif
+                },
             % endfor
         % endif
     ];

@@ -46,7 +46,7 @@ class HistoryREST:
             elif component.componentType == ComponentType.SWITCH:
                 value = 1.0 if component.pin.output else 0.0
 
-            res[component.name] = value
+            res[component.name] = {'value' : value, 'type' : component.componentType.name}
 
         return (CODE_OK, MIME_JSON,
                                 {'success' : True, 'res' : res})

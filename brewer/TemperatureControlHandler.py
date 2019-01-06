@@ -11,6 +11,31 @@ from brewer.HardwareHandler import HardwareHandler, ComponentType
 logger = logging.getLogger(__name__)
 
 
+class TargetTemperatureSensor:
+
+    def __init__(self, controlHandler):
+        self._controlHandler = controlHandler
+
+    @property
+    def color(self):
+        return "rgb(190, 190, 190)"
+
+    @property
+    def name(self):
+        return "Target Temperature"
+
+    @property
+    def componentType(self):
+        return ComponentType.SENSOR
+
+    @property
+    def reader(self):
+        return self
+
+    def getTemperatureCelsius(self):
+        return self._controlHandler.targetTemperatureCelsius
+
+
 class TemperatureControlHandler(Handler):
     '''
     Reads temperatures from the sensors, and turns the relay on or off
@@ -37,6 +62,7 @@ class TemperatureControlHandler(Handler):
 
     def onStart(self):
         self.brewer.getModule(HardwareHandler).addCustom(self)
+        self.brewer.getModule(HardwareHandler).addCustom(TargetTemperatureSensor(self))
 
         # Relay controller pin
         self._relayPin = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.thermalSwitch)
