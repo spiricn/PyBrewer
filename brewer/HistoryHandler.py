@@ -2,8 +2,8 @@ from brewer.Handler import Handler
 import datetime
 import logging
 from contextlib import closing
-from tmp.brewer.hw.TemperatureSensor import TemperatureSensor
-from brewer.HardwareHandler import HardwareHandler, ComponentType
+from brewer.HardwareHandler import HardwareHandler
+from brewer.AComponent import ComponentType
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +56,9 @@ class HistoryHandler(Handler):
         for component in self.brewer.getModule(HardwareHandler).getComponents():
 
             if component.componentType == ComponentType.SENSOR:
-                value = component.reader.getTemperatureCelsius()
+                value = component.getValue()
             elif component.componentType == ComponentType.SWITCH:
-                value = 1.0 if component.pin.output else 0.0
+                value = 1.0 if component.isOn() else 0.0
 
             # Create a temperature/seconds sample
             sample = (currentDate.strftime(self.DATE_FORMAT),

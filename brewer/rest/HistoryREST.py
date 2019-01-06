@@ -42,9 +42,9 @@ class HistoryREST:
         for component in self._brewer.getModule(HardwareHandler).getComponents():
 
             if component.componentType == ComponentType.SENSOR:
-                value = component.reader.getTemperatureCelsius()
+                value = component.getValue()
             elif component.componentType == ComponentType.SWITCH:
-                value = 1.0 if component.pin.output else 0.0
+                value = 1.0 if component.isOn() else 0.0
 
             res[component.name] = {'value' : value, 'type' : component.componentType.name}
 

@@ -6,34 +6,36 @@ from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 from brewer.Handler import Handler
 from brewer.TemperatureControlAlgorithm import TemperatureControlAlgorithm
 from brewer.SettingsHandler import SettingsHandler
-from brewer.HardwareHandler import HardwareHandler, ComponentType
+from brewer.HardwareHandler import HardwareHandler
+from brewer.AComponent import ComponentType
+from brewer.ASensor import ASensor
+from brewer.ASwitch import ASwitch
 
 logger = logging.getLogger(__name__)
 
 
-class TargetTemperatureSensor:
+class TargetTemperatureSensor(ASensor):
 
     def __init__(self, controlHandler):
+        ASensor.__init__(self, "Target Temperature", "rgb(190, 190, 190)")
+
         self._controlHandler = controlHandler
 
-    @property
-    def color(self):
-        return "rgb(190, 190, 190)"
-
-    @property
-    def name(self):
-        return "Target Temperature"
-
-    @property
-    def componentType(self):
-        return ComponentType.SENSOR
-
-    @property
-    def reader(self):
-        return self
-
-    def getTemperatureCelsius(self):
+    def getValue(self):
         return self._controlHandler.targetTemperatureCelsius
+
+
+class TemperatureControlSwitch(ASwitch):
+    def __init__(self, controlHandler):
+        ASwitch.__init__(self, "TemperatureController", 'rgb(128, 128, 128)')
+
+        self._controlHandler = controlHandler
+
+    def isOn(self):
+        return self._controlHandler.running
+
+    def setOn(self, on : bool):
+        self._controlHandler.setState(on, rememberChoice=True)
 
 
 class TemperatureControlHandler(Handler):
@@ -61,7 +63,10 @@ class TemperatureControlHandler(Handler):
         Handler.__init__(self, brewer)
 
     def onStart(self):
-        self.brewer.getModule(HardwareHandler).addCustom(self)
+        # Add virtual switch, used to turn the controller on/off
+        self.brewer.getModule(HardwareHandler).addCustom(TemperatureControlSwitch(self))
+
+        # Add virtual sensor, used to monitor target temperature
         self.brewer.getModule(HardwareHandler).addCustom(TargetTemperatureSensor(self))
 
         # Relay controller pin
@@ -70,13 +75,10 @@ class TemperatureControlHandler(Handler):
         if not self._relayPin:
             raise RuntimeError("Unable to find switch with name %r", str(self.brewer.config.thermalSwitch))
 
-        self._relayPin = self._relayPin.pin
-
         # Temperature sensor
         self._externalSensor = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.externalSensor)
         if not self._externalSensor:
             raise RuntimeError("Unable to find sensor with name %r", str(self.brewer.config.externalSensor))
-        self._externalSensor = self._externalSensor.reader
 
         # Controller running or not
         self._running = False
@@ -112,10 +114,6 @@ class TemperatureControlHandler(Handler):
         if self._running:
             self.setState(False, rememberChoice=False)
 
-    @property
-    def color(self):
-        return 'rgb(128, 128, 128)'
-
     def _run(self):
         '''
         Start the controller
@@ -133,7 +131,7 @@ class TemperatureControlHandler(Handler):
         # Main loop
         while self._running:
             # Read the current temperature from probe
-            currentTemperatureCelsius = self._externalSensor.getTemperatureCelsius()
+            currentTemperatureCelsius = self._externalSensor.getValue()
 
             # Check if the read failed
             if currentTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
@@ -173,25 +171,6 @@ class TemperatureControlHandler(Handler):
                             'control stopped'
         )
 
-    @property
-    def componentType(self):
-        return ComponentType.SWITCH
-
-    @property
-    def name(self):
-        return "TemperatureController"
-
-    @property
-    def pin(self):
-        return self
-
-    @property
-    def output(self):
-        return self._running
-
-    def setOutput(self, state):
-        self.setState(state)
-
     def _setRelayState(self, state):
         '''
         Turns the relay on or off
@@ -203,7 +182,7 @@ class TemperatureControlHandler(Handler):
 
         # Change state
         logger.debug('setting relay state: ' + str(state))
-        self._relayPin.setOutput(state)
+        self._relayPin.setOn(state)
 
         self._currentState = state
 

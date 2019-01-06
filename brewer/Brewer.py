@@ -27,6 +27,9 @@ from ssc.servlets.ServletContainer import ServletContainer
 from brewer.SessionServlet import SessionServlet
 from brewer.rest.UserREST import UserREST
 from brewer.HardwareHandler import HardwareHandler, ComponentType
+from brewer.RelaySwitch import RelaySwitch
+from brewer.ProbeSensor import ProbeSensor
+from brewer.TemperatureReader import TemperatureReader
 
 logger = logging.getLogger(__name__)
 
@@ -70,17 +73,24 @@ class Brewer():
 
         # Add switches
         for switch in self.config.switches:
-            self.getModule(HardwareHandler).addSwitch(switch['NAME'],
-                                                      switch['GPIO_PIN'],
-                                                      switch['COLOR']
-                                                      )
+            self.getModule(HardwareHandler).addCustom(
+
+                RelaySwitch(
+                    switch['NAME'],
+                    switch['COLOR'],
+                    IOPin.createOutput(switch['GPIO_PIN'])
+                    )
+                )
 
         # Add sensors
         for sensor in self.config.sensors:
-            self.getModule(HardwareHandler).addSensor(sensor['NAME'],
-                                                      sensor['DEV_ID'],
-                                                      sensor['COLOR']
-                                                      )
+            self.getModule(HardwareHandler).addCustom(
+                ProbeSensor(
+                    sensor['NAME'],
+                    sensor['COLOR'],
+                    TemperatureReader(sensor['DEV_ID'], self.config.validTemperatureRangeCelsius, lambda errorMessage: self.logError(errorMessage))
+                    )
+                )
 
     @property
     def database(self):
@@ -232,9 +242,9 @@ class Brewer():
         for component in self.getModule(HardwareHandler).getComponents():
 
             if component.componentType == ComponentType.SENSOR:
-                value = component.reader.getTemperatureCelsius()
+                value = component.getValue()
             elif component.componentType == ComponentType.SWITCH:
-                value = 1.0 if component.pin.output else 0.0
+                value = 1.0 if component.isOn() else 0.0
 
             status.append({
                 "value" : value,

@@ -1,20 +1,9 @@
-from collections import namedtuple
-from rpi.IOPin import IOPin
-from brewer.TemperatureReader import TemperatureReader
 from brewer.Handler import Handler
 import logging
-from enum import Enum
-
-Switch = namedtuple('Switch', 'name, componentType, pin, color')
-Sensor = namedtuple('Sensor', 'name, componentType, reader, color')
+from brewer.AComponent import ComponentType
 
 logger = logging.getLogger(__name__)
 
-
-class ComponentType(Enum):
-    SWITCH = 1
-    SENSOR = 2
-    TEMPERATURE_CONTROLLER = 3
 
 class HardwareHandler(Handler):
 
@@ -22,19 +11,6 @@ class HardwareHandler(Handler):
         Handler.__init__(self, brewer)
 
         self._components = {}
-
-    def addSwitch(self, name : str, pinNumber : int, color : str):
-        self._addComponent(
-            Switch(name, ComponentType.SWITCH, IOPin.createOutput(pinNumber), color)
-        )
-
-    def addSensor(self, name : str, deviceId : str, color : str):
-        self._addComponent(
-            Sensor(name, ComponentType.SENSOR, 
-                   TemperatureReader(deviceId, self.brewer.config.validTemperatureRangeCelsius, lambda errorMessage: self.brewer.logError(errorMessage)),
-                   color
-                   )
-        )
 
     def addCustom(self, component):
         self._addComponent(component)
