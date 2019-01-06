@@ -7,7 +7,6 @@ from brewer.Handler import Handler
 from brewer.TemperatureControlAlgorithm import TemperatureControlAlgorithm
 from brewer.SettingsHandler import SettingsHandler
 from brewer.HardwareHandler import HardwareHandler
-from brewer.AComponent import ComponentType
 from brewer.ASensor import ASensor
 from brewer.ASwitch import ASwitch
 
@@ -26,6 +25,7 @@ class TargetTemperatureSensor(ASensor):
 
 
 class TemperatureControlSwitch(ASwitch):
+
     def __init__(self, controlHandler):
         ASwitch.__init__(self, "TemperatureController", 'rgb(128, 128, 128)')
 
@@ -70,10 +70,16 @@ class TemperatureControlHandler(Handler):
         self.brewer.getModule(HardwareHandler).addCustom(TargetTemperatureSensor(self))
 
         # Relay controller pin
-        self._relayPin = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.thermalSwitch)
+        self._thermalSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.thermalSwitch)
 
-        if not self._relayPin:
+        if not self._thermalSwitch:
             raise RuntimeError("Unable to find switch with name %r", str(self.brewer.config.thermalSwitch))
+
+        # Find pump switch
+        self._pumpSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.pumpSwitch)
+
+        if not self._pumpSwitch:
+            raise RuntimeError("Unable to find switch with name %r", str(self.brewer.config.pumpSwitch))
 
         # Temperature sensor
         self._externalSensor = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.externalSensor)
@@ -182,7 +188,7 @@ class TemperatureControlHandler(Handler):
 
         # Change state
         logger.debug('setting relay state: ' + str(state))
-        self._relayPin.setOn(state)
+        self._thermalSwitch.setOn(state)
 
         self._currentState = state
 

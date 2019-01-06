@@ -116,6 +116,10 @@ class Config:
         return self._getValue('THERMAL_SWITCH', None)
 
     @property
+    def pumpSwitch(self):
+        return self._getValue('PUMP_SWITCH', None)
+
+    @property
     def temperatureHysteresisC(self):
         return self._getValue('TEMPERATURE_HYSTERESIS_C', 0.3)
 
