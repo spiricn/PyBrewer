@@ -19,10 +19,19 @@ class HistoryREST:
         '''
 
         return (
-                # Fetch relay state
                 RestHandler(
-                    'history/get',
-                    self._getHistory
+                    'history/getSamples',
+                    self._getSamples
+                ),
+
+                RestHandler(
+                    'history/getNumSamples',
+                    self._getNumSamples
+                ),
+
+                RestHandler(
+                    'history/getComponents',
+                    self._getComponents
                 ),
 
                 RestHandler(
@@ -31,6 +40,27 @@ class HistoryREST:
                 ),
 
         )
+
+    def _getSamples(self, request):
+        startIndex = int(request.params['startIndex'][0])
+        endIndex = int(request.params['endIndex'][0])
+        record = request.params['record'][0]
+
+        return (CODE_OK, MIME_JSON,
+                            {'success' : True, 'res' : self._brewer.getModule(HistoryHandler).getSamples(record, startIndex, endIndex)})
+
+    def _getNumSamples(self, request):
+        record = request.params['record'][0]
+
+        component = request.params['component'][0]
+
+        return (CODE_OK, MIME_JSON,
+                            {'success' : True, 'res' : self._brewer.getModule(HistoryHandler).getNumSamples(record, component)})
+
+    def _getComponents(self, request):
+        record = request.params['record'][0]
+
+        return (CODE_OK, MIME_JSON, {'success' : True, 'res' : self._brewer.getModule(HistoryHandler).getComponents(record)})
 
     def _getRecords(self, request):
         return (CODE_OK, MIME_JSON,

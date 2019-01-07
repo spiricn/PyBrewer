@@ -6,13 +6,12 @@ from brewer.AComponent import ComponentType
 
 sensorValueMultiplier = 17
 
-components = {}
-
 today = True
 
 if 'entry' in request.params:
-    components = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
     today = True if  request.params['entry'][0] == Brewer.getModule(HistoryHandler).getRecords()[0] else Flase
+
+entry = request.params['entry'][0]
 
 %>
 
@@ -55,6 +54,72 @@ function formatTime(time) {
     return moment(new Date(time)).format("HH : mm : ss")
 }
 
+function init() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/history/getComponents?record=${entry}');
+    
+    xhr.onload = function() {
+        console.log('start ' + xhr);
+        var components = JSON.parse(xhr.response).res;
+        
+        for(var i=0; i<components.length; i++) {
+            var component = components[i];
+            
+            console.log('process ' + component)
+
+            var getNumComponentsXhr  = new XMLHttpRequest();
+            getNumComponentsXhr.open('POST', 'rest/history/getNumSamples?record=${entry}&component=' + component);
+            
+            getNumComponentsXhr.onload = function() {
+                var numSamples = JSON.parse(getNumComponentsXhr.response).res;
+                
+                console.log('num samples ' + component + " " + numSamples + "\n");
+                
+                
+                var pageSize = 50;
+                
+                for(var pageIndex=0; pageIndex<5; pageIndex++){
+                    console.log('get page ' + pageIndex);
+
+                    var getSamplesXhr  = new XMLHttpRequest();
+                    getSamplesXhr.open('POST', 
+                            'rest/history/getSamples?record=${entry}&component=' + component + '&startIndex=' + (pageIndex*pageSize) + '&endIndex=' + ((pageIndex+1)*pageSize));
+                    
+                    getSamplesXhr.onload = function() {
+                      console.log('loaded ' + pageIndex );  
+                      
+                      var compSamples = JSON.parse(getSamplesXhr.response).res;
+                      
+                      for(var i in compSamples){
+                          
+                          var samples = compSamples[i];
+                          
+                          for(var sampleIdx in samples){
+                              
+                              data["component" + component.replace(' ', '_')].push(
+                                      {x : new Date(samples[sampleIdx][0] + 'T' + samples[sampleIdx][1]), y : samples[sampleIdx][2]
+                                      });
+                          }
+                      }
+                      
+                      chart.update();
+                      console.log('done');
+                      
+                    };
+                    getSamplesXhr.send();
+                    
+                    break;
+                }
+            }
+            
+            getNumComponentsXhr.send();
+            
+            break;
+        }
+    }
+    
+    xhr.send()
+}
 function update() {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'rest/history/get');
@@ -89,25 +154,13 @@ function update() {
 var data = {};
 
 % for component in Brewer.getModule(HardwareHandler).getComponents():
-    data["component${component.name.replace(' ', '_')}"] = [
-        
-        % if component.name in components:
-            %for sample in components[component.name]:
-                { x: new Date("${sample[0]}T${sample[1]}"), y: ${sample[2]}
-
-            % if component.componentType == ComponentType.SWITCH:
-                * ${sensorValueMultiplier}
-            % endif
-                },
-            % endfor
-        % endif
-    ];
-    
+    data["component${component.name.replace(' ', '_')}"] = [];
 % endfor
 
 
+init();
 % if today:
-update();
+//update();
 % endif
 
 

@@ -4,6 +4,7 @@ import logging
 from contextlib import closing
 from brewer.HardwareHandler import HardwareHandler
 from brewer.AComponent import ComponentType
+from _datetime import date
 
 logger = logging.getLogger(__name__)
 
@@ -90,18 +91,11 @@ class HistoryHandler(Handler):
 
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                return [i[0] for i in cursor.execute('SELECT distinct(%s) from %s ORDER BY %s DESC'
+                return [i[0] for i in cursor.execute('SELECT DISTINCT(%s) FROM %s ORDER BY %s DESC'
                                                      % (self.COL_DATE, self.TABLE_SAMPLES, self.COL_DATE)
                 ).fetchall()]
 
-    def getSamples(self, date):
-        '''
-        Get recorded samples for given date
-
-        @param date: Date encoded in self.DATE_FORMAT format
-        @return: List of samples
-        '''
-
+    def getComponents(self, date):
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
                 res = cursor.execute('SELECT DISTINCT(%s) FROM %s WHERE %s=? ORDER BY %s'
@@ -109,16 +103,38 @@ class HistoryHandler(Handler):
                   (date,)
                 )
 
-                components = [i[0] for i in res.fetchall()]
+                return [i[0] for i in res.fetchall()]
 
+    def getNumSamples(self, date, component):
+        with self.brewer.database as conn:
+            with closing(conn.cursor()) as cursor:
+                res = cursor.execute('SELECT COUNT(*) FROM %s WHERE %s=? AND %s=?'
+                             % (self.TABLE_SAMPLES, self.COL_DATE, self.COL_COMPONENT),
+                             (date, component))
+                return res.fetchone()[0]
+
+    def getSamples(self, date, startIndex, endIndex):
+        '''
+        Get recorded samples for given date
+
+        @param date: Date encoded in self.DATE_FORMAT format
+        @return: List of samples
+        '''
+
+        components = self.getComponents(date)
+
+        with self.brewer.database as conn:
+            with closing(conn.cursor()) as cursor:
                 result = {}
 
                 for component in components:
                     samples = []
 
-                    res = cursor.execute('SELECT %s, %s, %s FROM %s WHERE %s=? AND %s=? ORDER BY %s'
+                    numSamples = endIndex - startIndex
+
+                    res = cursor.execute('SELECT %s, %s, %s FROM %s WHERE %s=? AND %s=? ORDER BY %s LIMIT ? OFFSET ?'
                                 % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.TABLE_SAMPLES, self.COL_DATE, self.COL_COMPONENT, self.COL_TIME),
-                                (date, component)
+                                (date, component, numSamples, startIndex)
                     )
 #
                     samples = [(date, time, value) for date, time, value in res.fetchall()]
