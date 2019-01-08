@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class TargetTemperatureSensor(ASensor):
 
     def __init__(self, controlHandler):
-        ASensor.__init__(self, "Target Temperature", "rgb(190, 190, 190)")
+        ASensor.__init__(self, "Target Temperature", "rgb(190, 190, 190)", True)
 
         self._controlHandler = controlHandler
 
@@ -27,7 +27,7 @@ class TargetTemperatureSensor(ASensor):
 class TemperatureControlSwitch(ASwitch):
 
     def __init__(self, controlHandler):
-        ASwitch.__init__(self, "TemperatureController", 'rgb(128, 128, 128)')
+        ASwitch.__init__(self, "TemperatureController", 'rgb(128, 128, 128)', False)
 
         self._controlHandler = controlHandler
 

@@ -4,8 +4,8 @@ from rpi.IOPin import IOPin
 
 class RelaySwitch(ASwitch):
 
-    def __init__(self, name : str, color : str, pin : IOPin):
-        ASwitch.__init__(self, name, color)
+    def __init__(self, name : str, color : str, pin : IOPin, graph : bool):
+        ASwitch.__init__(self, name, color, graph)
 
         self._pin = pin
 

@@ -9,10 +9,15 @@ class ComponentType(Enum):
 
 class AComponent:
 
-    def __init__(self, name : str, componentType : ComponentType, color : str):
+    def __init__(self, name : str, componentType : ComponentType, color : str, graph : bool):
         self._name = name
         self._color = color
         self._componentType = componentType
+        self._graph = graph
+
+    @property
+    def graph(self):
+        return self._graph
 
     @property
     def componentType(self):

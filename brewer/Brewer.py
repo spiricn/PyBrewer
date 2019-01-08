@@ -77,7 +77,8 @@ class Brewer():
                 RelaySwitch(
                     switch['NAME'],
                     switch['COLOR'],
-                    IOPin.createOutput(switch['GPIO_PIN'])
+                    IOPin.createOutput(switch['GPIO_PIN']),
+                    bool(switch['GRAPH'])
                     )
                 )
 
@@ -87,7 +88,8 @@ class Brewer():
                 ProbeSensor(
                     sensor['NAME'],
                     sensor['COLOR'],
-                    TemperatureReader(sensor['DEV_ID'], self.config.validTemperatureRangeCelsius, lambda errorMessage: self.logError("TemperatureReader", errorMessage))
+                    TemperatureReader(sensor['DEV_ID'], self.config.validTemperatureRangeCelsius, lambda errorMessage: self.logError("TemperatureReader", errorMessage)),
+                    bool(sensor['GRAPH'])
                     )
                 )
 

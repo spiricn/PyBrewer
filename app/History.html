@@ -117,15 +117,19 @@ var chart = new Chart(document.getElementById("myChart"), {
     datasets: [
         % for index, component in enumerate(Brewer.getModule(HardwareHandler).getComponents()):
             
-        {
-            data: data["component${component.name.replace(' ', '_')}"],
-            label: "${component.name}",
-            borderColor: "${component.color}",
-            fill: false,
-            showLine: true,
-            pointRadius: 0,
-            cubicInterpolationMode: 'cubic'
-        },
+            % if component.graph:
+                    
+                {
+                    data: data["component${component.name.replace(' ', '_')}"],
+                    label: "${component.name}",
+                    borderColor: "${component.color}",
+                    fill: false,
+                    showLine: true,
+                    pointRadius: 0,
+                    cubicInterpolationMode: 'cubic'
+                },
+
+            % endif
 
         % endfor
     ]
