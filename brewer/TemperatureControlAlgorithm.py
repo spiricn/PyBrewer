@@ -21,39 +21,21 @@ class TemperatureControlAlgorithm:
         # Idling
         IDLE = 2
 
-        # Dispersing heat (fan/pump)
-        THERMAL_DISPERSION = 3
-
-    def __init__(self, targetTemperatureCelsius : float, mode, hysteresis : float,
-                 dispersionPeriodSec : float, dispersionDurationSec : float):
+    def __init__(self, targetTemperatureCelsius : float, mode, hysteresis : float):
         self._targetTemperatureCelsius = targetTemperatureCelsius
 
         self._mode = mode
 
         self._hysteresis = hysteresis
 
-        self._dispersionPeriodSec = dispersionPeriodSec
-
-        self._dispersionDurationSec = dispersionDurationSec
-
         self._state = None
 
     def startControl(self):
-        self._setState(self.State.THERMAL_DISPERSION)
-
-        self._lastTime = time.time()
-
-        self._dispersionSec = 0
+        self._setState(self.State.IDLE)
 
         return self._getState()
 
     def control(self, currentTemperatureC : float):
-        currTime = time.time()
-
-        elapsedSec = currTime - self._lastTime
-
-        self._lastTime = currTime
-
         if self._state == self.State.THERMAL_ACTIVE:
             # Heating/cooling is on, and we still didn't reach desired temperature
             if (self._mode == self.Mode.HEAT and currentTemperatureC <= self._targetTemperatureCelsius) \
@@ -61,11 +43,10 @@ class TemperatureControlAlgorithm:
                 # Just continue regulating temperature (both pump, and thermal element on)
                 pass
             else:
-                # We reached desired temperature, so start period dispersion
-                self._setState(self.State.THERMAL_DISPERSION)
-                self._dispersionSec = 0
+                # We reached desired temperature, so go idle
+                self._setState(self.State.IDLE)
 
-        elif self._state in [self.State.THERMAL_DISPERSION, self.State.IDLE]:
+        elif self._state == self.State.IDLE:
             # Detect when temperature dropped below/above acceptable
             if (self._mode == self.Mode.HEAT and currentTemperatureC <= self._targetTemperatureCelsius - self._hysteresis) \
                 or (self._mode == self.Mode.COOL and currentTemperatureC >= self._targetTemperatureCelsius + self._hysteresis):
@@ -73,33 +54,13 @@ class TemperatureControlAlgorithm:
                 # Start regulating temperature (both pump, and thermal element on)
                 self._setState(self.State.THERMAL_ACTIVE)
             else:
-                self._dispersionSec += elapsedSec
-
-                if self._state == self.State.THERMAL_DISPERSION:
-                    if self._dispersionSec > self._dispersionDurationSec:
-                        # Dispersion done, switch to idle
-                        self._setState(self.State.IDLE)
-                        self._dispersionSec = 0
-                    else:
-                        # Dispersion active, keep going
-                        pass
-
-                else:
-                    if self._dispersionSec > self._dispersionPeriodSec:
-                        # Start dispersion
-                        self._setState(self.State.THERMAL_DISPERSION)
-                        self._dispersionSec = 0
-                    else:
-                        # We're idle so keep everything off
-                        pass
+                # Continue idling
+                pass
 
         return self._getState()
 
     def _getState(self):
         if self._state == self.State.IDLE:
-            return (False, False)
-
-        elif self._state == self.State.THERMAL_DISPERSION:
             return (False, True)
 
         elif self._state == self.State.THERMAL_ACTIVE:

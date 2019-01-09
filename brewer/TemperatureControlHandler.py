@@ -106,9 +106,7 @@ class TemperatureControlHandler(Handler):
         # Instantiate the algorithm
         self._controlAlgorithm = TemperatureControlAlgorithm(targetCelsius,
                                                              self._mode,
-                                                             self.brewer.config.temperatureHysteresisC,
-                                                             self.brewer.config.dispersionPeriodSec,
-                                                             self.brewer.config.dispersionDurationSec
+                                                             self.brewer.config.temperatureHysteresisC
                                                              )
 
         # Relay state
