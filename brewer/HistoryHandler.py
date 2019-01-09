@@ -4,6 +4,7 @@ import logging
 from contextlib import closing
 from brewer.HardwareHandler import HardwareHandler
 from brewer.AComponent import ComponentType
+from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 
 logger = logging.getLogger(__name__)
 
@@ -111,21 +112,25 @@ class HistoryHandler(Handler):
 
                 components = [i[0] for i in res.fetchall()]
 
-                result = {}
+                timeSamples = []
 
-                for component in components:
-                    samples = []
+                samples = {}
 
-                    res = cursor.execute('SELECT %s, %s, %s FROM %s WHERE %s=? AND %s=? ORDER BY %s'
-                                % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.TABLE_SAMPLES, self.COL_DATE, self.COL_COMPONENT, self.COL_TIME),
-                                (date, component)
+                for index, component in enumerate(components):
+                    res = cursor.execute('SELECT %s, %s, %s FROM %s WHERE %s=? AND %s=? AND  %s<? ORDER BY %s'
+                                % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.TABLE_SAMPLES, self.COL_DATE, self.COL_COMPONENT, self.COL_VALUE, self.COL_TIME),
+                                (date, component, TemperatureSensor.TEMP_INVALID_C)
                     )
 #
-                    samples = [(date, time, value) for date, time, value in res.fetchall()]
+                    samples[component] = []
 
-                    result[component] = samples
+                    for date, time, value in res.fetchall():
+                        if index == 0:
+                            timeSamples.append(date + 'T' + time)
 
-                return result
+                        samples[component].append(value);
+
+                return {'time' : timeSamples, 'samples' : samples}
 
     def onStart(self):
         # Create table if it does not exist

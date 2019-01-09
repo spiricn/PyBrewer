@@ -11,26 +11,16 @@ components = {}
 today = True
 
 if 'entry' in request.params:
-    components = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
+    samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
     today = True if  request.params['entry'][0] == Brewer.getModule(HistoryHandler).getRecords()[0] else Flase
+    
 
 %>
 
 <%include file="Header.html"/>
 
-<script src="/js/Chart.js"></script>
-<script src="/js/hammer.min.js"></script>
-<script src="/js/chart.zoom.js"></script>
-<script src="/js/moment.min.js"></script>
+ <script src="js/zingchart.min.js"></script>
 
-<style>
-
-div {
- position: absolute;
-    top: 100; right: 0; bottom: 0; left: 0;
-}
-
-</style>
 </head>
 
 <body>
@@ -40,9 +30,8 @@ div {
 
 <div>
 
-<a class="main" href="javascript:chart.resetZoom();"> Reset zoom </a>
+<div id="myChart"></div>
 
-<canvas id="myChart"></canvas>
 </div>
 
 </body>
@@ -51,36 +40,36 @@ div {
 
 <script>
 
-function formatTime(time) {
-    return moment(new Date(time)).format("HH : mm : ss")
-}
-
 function update() {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'rest/history/get');
 
     xhr.onload = function() {
         var res = JSON.parse(xhr.response).res;
-
+        
         var time = new Date();
+        
+        zingchart.exec('myChart', 'addscalevalue', {
+            graphid : 0,
+            scale : 'scale-x',
+            value : time
+        });
 
         for(var component in res){
             var multiplier = res[component].type == 'SWITCH' ? ${sensorValueMultiplier} : 1.0;
             
-            data["component" + component.replace(' ', '_')].push(
-                    {x : time, y : res[component].value * multiplier
-                    });
+            zingchart.exec('myid', 'appendseriesvalues', {
+                values : res[component].value * multiplier
+            });
         }
 
-        chart.update();
-
-        setTimeout(update, 100);
+        setTimeout(update, 1000);
     }
 
     xhr.onerror = function() {
         console.log("error fetching temperature");
 
-        setTimeout(update, 100);
+        setTimeout(update, 1000);
     }
 
     xhr.send()
@@ -88,119 +77,156 @@ function update() {
 
 var data = {};
 
-% for component in Brewer.getModule(HardwareHandler).getComponents():
-    data["component${component.name.replace(' ', '_')}"] = [
-        
-        % if component.name in components:
-            %for sample in components[component.name]:
-                { x: new Date("${sample[0]}T${sample[1]}"), y: ${sample[2]}
+var  timeSamples = [
 
-            % if component.componentType == ComponentType.SWITCH:
-                * ${sensorValueMultiplier}
-            % endif
-                },
-            % endfor
-        % endif
-    ];
+% for sample in samples['time']:
+    new Date("${sample}"),
+
+% endfor
+
+];
+
+var rawSamples = {}
+
+% for component in Brewer.getModule(HardwareHandler).getComponents():
+    % if component.graph:
+        
+data["component${component.name.replace(' ', '_')}"] = [];
+
+rawSamples["component${component.name.replace(' ', '_')}"] = ${samples['samples'][component.name]};
+
+    % endif
     
 % endfor
 
 
-% if today:
-update();
-% endif
-
-
-var chart = new Chart(document.getElementById("myChart"), {
-  type: 'line',
-  data: {
-    datasets: [
-        % for index, component in enumerate(Brewer.getModule(HardwareHandler).getComponents()):
-            
-            % if component.graph:
-                    
-                {
-                    data: data["component${component.name.replace(' ', '_')}"],
-                    label: "${component.name}",
-                    borderColor: "${component.color}",
-                    fill: false,
-                    showLine: true,
-                    pointRadius: 0,
-                    cubicInterpolationMode: 'cubic'
+for(var i=0; i<timeSamples.length; i++){
+    % for component in Brewer.getModule(HardwareHandler).getComponents():
+        % if component.graph:
+            data["component${component.name.replace(' ', '_')}"].push({ x: timeSamples[i], y : rawSamples["component${component.name.replace(' ', '_')}"][i]});
+    % endif
+    
+    % endfor
+}
+    
+    var myConfig = {
+            gui:{
+              contextMenu:{
+                position:'right',
+                docked: true,
+                alpha: 0.9,
+                item:{
+                  textAlpha: 1
                 },
-
-            % endif
-
-        % endfor
-    ]
-  },
-
-  options: {
-    title: {
-      responsive: true,
-      display: true,
-      text: 'Temperature history C'
-    },
-    tooltips: {
-                        position: 'nearest',
-                        mode: 'index',
-                        intersect: false,
-                        yPadding: 10,
-                        xPadding: 10,
-                        caretSize: 8,
-                        backgroundColor: 'rgba(72, 241, 12, 1)',
-                        borderColor: 'rgba(0,0,0,1)',
-                        borderWidth: 4,
-
-                        // Create custom tooltip title)
-                        callbacks: {
-                            title: function(tooltipItem){
-                                return formatTime(tooltipItem[0].xLabel);
-                            }
-                        }
-    },
-    scales: {
-        yAxes: [{
-            display: true,
-            ticks: {
-                stepSize: 1
-            },
-            labelString: 'Temperature'
-
-        }],
-        xAxes: [{
-            display: true,
-
-            // NOTE: needs to be linear, otherwise the zoom plugin breaks (known bug)
-            // that's why we can't use time type and have to manually set datapoint labels
-            type: 'linear',
-            labelString: 'Time',
-
-            // Create custom labels for X axis ticks
-            ticks: {
-                callback: function(tick) {
-                    return formatTime(tick);
+                button: {
+                  visible: true
                 }
-            }
+              }
+            },
+            graphset:[
+              {
+            type: 'line',
+            backgroundColor: "#333",
+            borderColor:"#cccccc",
+            borderWidth: 1,
+            borderRadius: 2,
+            plot:{
+              aspect: 'spline',
+              marker:{
+              visible: false
+            },
+            },
+            plotarea:{
+              margin: 'dynamic'
+            },
+            utc: true,
+            timezone: 8,
+            legend:{
+              draggable: true,
+              backgroundColor:'transparent',
+              marker:{
+                visible: false
+              },
+              item:{
+                margin: '5 17 2 0',
+                padding: '3 3 3 3',
+                fontColor:'#fff',
+                cursor: 'hand'
+              },
+              verticalAlign: 'middle',
+              borderWidth: 0
+            },
+            scaleX:{
+              minValue: 1484870400000, //set minValue timestamp
+              step: 'day', //set step for scale
+              maxItems:7,
+              itemsOverlap: true,
+              zooming: true,
+              transform:{
+                type: 'date',
+                all: '%D %M %mm<br>%Y'
+              },
+              values : timeSamples,
+            },
+            preview:{
+              adjustLayout: true,
+              live: true
+            },
+            scaleY:{
+              step:25,
+              label:{
+                text:'Sensor'
+              },
+              guide:{
+                lineStyle: 'solid'
+              },
+              zooming: true,
+            },
+            crosshairX:{
+              lineColor:'#555',
+              plotLabel:{
+                backgroundColor:'#fff',
+                multiple: true,
+                borderWidth: 2,
+                borderRadius: 2,
+              },
+              marker:{
+                size: 5,
+                borderWidth: 1,
+                borderColor:'#fff'
+              }
+            },
+            tooltip:{
+              visible: false
+            },
+            series: [
+                % for component in Brewer.getModule(HardwareHandler).getComponents():
+                    % if component.graph:
+                        {
+                        "values" : rawSamples['component${component.name.replace(' ', '_')}'],
+                        "text" : "${component.name}",
+                        legendItem:{
+                                backgroundColor:'${component.color}',
+                                borderRadius: 2
+                          }
+                        },
+                    %endif
+                %endfor
+                ],
+          }
+          ]
+          };
+           
+          zingchart.render({ 
+              id : 'myChart', 
+              data : myConfig, 
+              height: '100%', 
+              width: '100%' 
+          });
 
-        }]
-    },
 
-    // Container for zoom options
-    zoom: {
-        // Boolean to enable zooming
-        enabled: true,
-
-        drag: true,
-        // Zooming directions. Remove the appropriate direction to disable
-        // Eg. 'y' would only allow zooming in the y direction
-        mode: 'xy'
-    },
-  }
-});
 </script>
 
 
-
-
+</body>
 </html>
