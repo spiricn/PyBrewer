@@ -117,9 +117,16 @@ class HistoryHandler(Handler):
                 samples = {}
 
                 for index, component in enumerate(components):
-                    res = cursor.execute('SELECT %s, %s, %s FROM %s WHERE %s=? AND %s=? AND  %s<? ORDER BY %s'
-                                % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.TABLE_SAMPLES, self.COL_DATE, self.COL_COMPONENT, self.COL_VALUE, self.COL_TIME),
-                                (date, component, TemperatureSensor.TEMP_INVALID_C)
+                    res = cursor.execute('''
+                            SELECT %s, %s, 
+                            CASE
+                                WHEN %s > 9999 THEN 0
+                            ELSE %s
+                            END
+
+                            FROM %s WHERE %s=? AND %s=? ORDER BY %s'''
+                                % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.COL_VALUE, self.TABLE_SAMPLES, self.COL_DATE, self.COL_COMPONENT, self.COL_TIME),
+                                (date, component,)
                     )
 #
                     samples[component] = []
