@@ -6,14 +6,11 @@ from threading import Thread
 from time import sleep
 import time
 
-from TemperatureControl import TemperatureControl
 import brewer
-from brewer.DisplayHandler import DisplayHandler
 from brewer.HistoryHandler import HistoryHandler
 from brewer.LogHandler import LogHandler
 from brewer.SessionHandler import SessionHandler
 from brewer.TemperatureControlHandler import TemperatureControlHandler
-from brewer.TemperatureReaderHandler import TemperatureReaderHandler
 from brewer.SettingsHandler import SettingsHandler
 from brewer.rest.HistoryREST import HistoryREST
 from brewer.rest.LogREST import LogREST
