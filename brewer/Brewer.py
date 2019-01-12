@@ -27,6 +27,7 @@ from brewer.HardwareHandler import HardwareHandler, ComponentType
 from brewer.RelaySwitch import RelaySwitch
 from brewer.ProbeSensor import ProbeSensor
 from brewer.TemperatureReader import TemperatureReader
+from brewer.NotificationHandler import NotificationHandler
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,8 @@ class Brewer():
                     LogHandler,
                     HistoryHandler,
                     TemperatureControlHandler,
-                    HardwareHandler
+                    HardwareHandler,
+                    NotificationHandler
         )
 
         self._modules = []

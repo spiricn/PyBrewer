@@ -123,6 +123,10 @@ class Config:
     def temperatureHysteresisC(self):
         return self._getValue('TEMPERATURE_HYSTERESIS_C', 0.3)
 
+    @property
+    def warningTemperatureC(self):
+        return self._getValue('WARNING_TEMP_C', None)
+
     def _getValue(self, key, defaultValue=None):
         if key in self._cfgDict:
             return self._cfgDict[key]
