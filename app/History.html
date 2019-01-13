@@ -3,6 +3,7 @@
 from brewer.HistoryHandler import HistoryHandler
 from brewer.HardwareHandler import HardwareHandler
 from brewer.AComponent import ComponentType
+import datetime
 
 sensorValueMultiplier = 17
 
@@ -12,7 +13,10 @@ today = True
 
 if 'entry' in request.params:
     samples = Brewer.getModule(HistoryHandler).getSamples(request.params['entry'][0])
-    today = True if  request.params['entry'][0] == Brewer.getModule(HistoryHandler).getRecords()[0] else Flase
+    today = True if  request.params['entry'][0] == Brewer.getModule(HistoryHandler).getRecords()[0] else False
+else:
+    samples = Brewer.getModule(HistoryHandler).getSamplesRange(
+        datetime.datetime.now() - datetime.timedelta(hours=24), datetime.datetime.now())
     
 
 %>
