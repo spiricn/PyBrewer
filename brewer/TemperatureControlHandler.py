@@ -86,11 +86,6 @@ class TemperatureControlHandler(Handler):
         if not self._externalSensor:
             raise RuntimeError("Unable to find sensor with name %r", str(self.brewer.config.externalSensor))
 
-        # Temperature sensor
-        self._wortSensor = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.wortSensor)
-        if not self._wortSensor:
-            raise RuntimeError("Unable to find sensor with name %r", str(self.brewer.config.wortSensor))
-
         # Controller running or not
         self._running = False
 
@@ -146,12 +141,10 @@ class TemperatureControlHandler(Handler):
         # Main loop
         while self._running:
             # Read the current temperature from probe
-            externalTemperatureCelsius = self._externalSensor.getValue()
-
-            wortTemperatureCelsius = self._wortSensor.getValue()
+            currentTemperatureCelsius = self._externalSensor.getValue()
 
             # Check if the read failed
-            if externalTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C or wortTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
+            if currentTemperatureCelsius == TemperatureSensor.TEMP_INVALID_C:
 
                 # Log the error only once (if the probe failed we can except an error every loop)
                 if not errorLogged:
@@ -179,8 +172,7 @@ class TemperatureControlHandler(Handler):
             errorLogged = False
 
             # Control the relay
-            thermalSwitchOn, pumpOn = self._controlAlgorithm.control(
-                externalTemperatureCelsius, wortTemperatureCelsius)
+            thermalSwitchOn, pumpOn = self._controlAlgorithm.control(currentTemperatureCelsius)
 
             self._thermalSwitch.setOn(thermalSwitchOn)
             self._pumpSwitch.setOn(pumpOn)

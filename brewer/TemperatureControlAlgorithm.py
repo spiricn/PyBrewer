@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -34,16 +35,11 @@ class TemperatureControlAlgorithm:
 
         return self._getState()
 
-    def control(self, externalTemperatureC : float, wortTemperatureC : float):
-        if (self._mode == self.Mode.HEAT and wortTemperatureC > externalTemperatureC) \
-            or (self._mode == self.Mode.COOL and wortTemperatureC < externalTemperatureC) :
-            # Wort temperature is below/above external one, so just let them equalize
-            self._setState(self.State.IDLE)
-
-        elif self._state == self.State.THERMAL_ACTIVE:
+    def control(self, currentTemperatureC : float):
+        if self._state == self.State.THERMAL_ACTIVE:
             # Heating/cooling is on, and we still didn't reach desired temperature
-            if (self._mode == self.Mode.HEAT and externalTemperatureC <= self._targetTemperatureCelsius) \
-                or (self._mode == self.Mode.COOL and externalTemperatureC >= self._targetTemperatureCelsius):
+            if (self._mode == self.Mode.HEAT and currentTemperatureC <= self._targetTemperatureCelsius) \
+                or (self._mode == self.Mode.COOL and currentTemperatureC >= self._targetTemperatureCelsius):
                 # Just continue regulating temperature (both pump, and thermal element on)
                 pass
             else:
@@ -52,8 +48,8 @@ class TemperatureControlAlgorithm:
 
         elif self._state == self.State.IDLE:
             # Detect when temperature dropped below/above acceptable
-            if (self._mode == self.Mode.HEAT and externalTemperatureC <= self._targetTemperatureCelsius - self._hysteresis) \
-                or (self._mode == self.Mode.COOL and externalTemperatureC >= self._targetTemperatureCelsius + self._hysteresis):
+            if (self._mode == self.Mode.HEAT and currentTemperatureC <= self._targetTemperatureCelsius - self._hysteresis) \
+                or (self._mode == self.Mode.COOL and currentTemperatureC >= self._targetTemperatureCelsius + self._hysteresis):
 
                 # Start regulating temperature (both pump, and thermal element on)
                 self._setState(self.State.THERMAL_ACTIVE)
@@ -74,9 +70,6 @@ class TemperatureControlAlgorithm:
             raise RuntimeError('Unexpected state %r' % str(self._state))
 
     def _setState(self, state):
-        if state == self._state:
-            return
-
         logger.debug('state: %s -> %s' % (str(self._state), str(state)))
 
         self._state = state
