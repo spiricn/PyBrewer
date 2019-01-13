@@ -80,7 +80,7 @@ var data = {};
 var  timeSamples = [
 
 % for sample in samples['time']:
-    new Date("${sample}"),
+    new Date("${sample}").getTime(),
 
 % endfor
 
@@ -140,7 +140,7 @@ for(var i=0; i<timeSamples.length; i++){
               margin: 'dynamic'
             },
             utc: true,
-            timezone: 8,
+            timezone: 1,
             legend:{
               draggable: true,
               backgroundColor:'transparent',
@@ -157,14 +157,10 @@ for(var i=0; i<timeSamples.length; i++){
               borderWidth: 0
             },
             scaleX:{
-              minValue: 1484870400000, //set minValue timestamp
-              step: 'day', //set step for scale
-              maxItems:7,
-              itemsOverlap: true,
               zooming: true,
-              transform:{
-                type: 'date',
-                all: '%D %M %mm<br>%Y'
+              transform: {
+                  type: 'date',
+                  all: '%m/%d/%y  %h:%i %A'
               },
               values : timeSamples,
             },

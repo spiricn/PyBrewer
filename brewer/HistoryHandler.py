@@ -23,6 +23,8 @@ class HistoryHandler(Handler):
     # Time format used for samples
     TIME_FORMAT = '%H:%M:%S'
 
+    DATE_TIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
+
     # Samples table
     TABLE_SAMPLES = 'samples'
 
@@ -96,6 +98,12 @@ class HistoryHandler(Handler):
                 ).fetchall()]
 
     def getSamples(self, date):
+        startDate = datetime.datetime.strptime(date, self.DATE_FORMAT)
+
+        return self.getSamplesRange(startDate,
+                                    startDate + datetime.timedelta(hours=24))
+
+    def getSamplesRange(self, startDate, endDate):
         '''
         Get recorded samples for given date
 
@@ -105,9 +113,12 @@ class HistoryHandler(Handler):
 
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                res = cursor.execute('SELECT DISTINCT(%s) FROM %s WHERE %s=? ORDER BY %s'
-                  % (self.COL_COMPONENT, self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME),
-                  (date,)
+                res = cursor.execute('SELECT DISTINCT(%s) FROM %s WHERE datetime(%s || " " || %s) BETWEEN ? AND ? ORDER BY %s'
+                  % (self.COL_COMPONENT,
+                     self.TABLE_SAMPLES,
+                     self.COL_DATE, self.COL_TIME,
+                     self.COL_COMPONENT),
+                  (startDate, endDate)
                 )
 
                 components = [i[0] for i in res.fetchall()]
@@ -124,9 +135,15 @@ class HistoryHandler(Handler):
                             ELSE %s
                             END
 
-                            FROM %s WHERE %s=? AND %s=? ORDER BY %s'''
-                                % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.COL_VALUE, self.TABLE_SAMPLES, self.COL_DATE, self.COL_COMPONENT, self.COL_TIME),
-                                (date, component,)
+                            FROM %s 
+
+                            WHERE %s=? AND datetime(%s || " " || %s) BETWEEN ? and ? ORDER BY datetime(%s || " " ||  %s)'''
+                                % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.COL_VALUE,
+                                   self.TABLE_SAMPLES,
+                                   self.COL_COMPONENT, self.COL_DATE, self.COL_TIME,
+                                   self.COL_DATE, self.COL_TIME
+                                   ),
+                                (component, startDate.strftime(self.DATE_TIME_FORMAT), endDate.strftime(self.DATE_TIME_FORMAT))
                     )
 #
                     samples[component] = []
