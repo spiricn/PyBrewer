@@ -30,6 +30,9 @@ class TemperatureControlAlgorithm:
 
         self._state = None
 
+    def setTarget(self, targetTempC):
+        self._targetTemperatureCelsius = targetTempC
+
     def startControl(self):
         self._setState(self.State.IDLE)
 

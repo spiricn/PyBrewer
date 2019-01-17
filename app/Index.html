@@ -26,6 +26,21 @@ function toggleSwitch(name) {
     xhr.send()
 }
 
+function setTargetTemperature() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/temperature/controller/setTarget?temperatureC=' + document.getElementById("targetTemperature").value);
+
+    xhr.onerror = function() {
+        alert('set target failed (error: ' + xhr.status + ')');
+    };
+    
+    xhr.onload = function() {
+        alert("done");
+    }
+
+    xhr.send()
+}
+
 function showHistory(){
     var e = document.getElementById("historySelect");
 
@@ -137,6 +152,12 @@ refreshStatus()
     <tr>
         <td> Data </td>
         <td> <a class="main" href="pybrewer.db"> Download ( ${Utils.getHumanReadableSize(os.path.getsize(Brewer.config.databasePath))} ) </a> </td>
+    </tr>
+
+    <tr>
+        <td> Target temperature </td>
+        <td> <input id="targetTemperature" type=number step=0.1 value=0.0> </td>
+        <td> <a class="main" href="javascript:setTargetTemperature()">Set</a> </td>
     </tr>
 
     <tr><td></br></td></tr>

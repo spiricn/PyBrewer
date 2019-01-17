@@ -59,10 +59,14 @@ class TemperatureControlHandler(Handler):
     #
     STG_KEY_TARGET_TEMP = 'TEMPERATURE_CONTROL_TARGET'
 
+    #
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
 
     def onStart(self):
+        # Target temperature we're trying to achieve
+        self._targetTemperatureCelsius = self.brewer.getModule(SettingsHandler).getFloat(self.STG_KEY_TARGET_TEMP, 15.0)
+
         # Add virtual switch, used to turn the controller on/off
         self.brewer.getModule(HardwareHandler).addCustom(TemperatureControlSwitch(self))
 
@@ -89,9 +93,6 @@ class TemperatureControlHandler(Handler):
         # Controller running or not
         self._running = False
 
-        # Target temperature we're trying to achieve
-        self.targetTemperatureCelsius = self.brewer.config.targetTemperatureCelsius
-
         modeMap = {
             'MODE_HEAT' : TemperatureControlAlgorithm.Mode.HEAT,
             'MODE_COOL' : TemperatureControlAlgorithm.Mode.COOL,
@@ -101,10 +102,8 @@ class TemperatureControlHandler(Handler):
                                                                        self.brewer.config.mode)
         self._mode = modeMap[modeSetting]
 
-        targetCelsius = self.brewer.getModule(SettingsHandler).getFloat(self.STG_KEY_TARGET_TEMP, self.targetTemperatureCelsius)
-
         # Instantiate the algorithm
-        self._controlAlgorithm = TemperatureControlAlgorithm(targetCelsius,
+        self._controlAlgorithm = TemperatureControlAlgorithm(self._targetTemperatureCelsius,
                                                              self._mode,
                                                              self.brewer.config.temperatureHysteresisC
                                                              )
@@ -214,12 +213,20 @@ class TemperatureControlHandler(Handler):
         if rememberChoice:
             self.brewer.getModule(SettingsHandler).putBoolean(self.STG_KEY_STATE, state)
 
+    @property
+    def targetTemperatureCelsius(self):
+        return self._targetTemperatureCelsius
+
     def setTargetTemperature(self, targetTemperatureCelsius):
         '''
         Set the target temperature we're trying to achieve
         '''
 
-        self.targetTemperatureCelsius = targetTemperatureCelsius
+        self._targetTemperatureCelsius = targetTemperatureCelsius
+
+        self.brewer.getModule(SettingsHandler).putFloat(self.STG_KEY_TARGET_TEMP, self.targetTemperatureCelsius)
+
+        self._controlAlgorithm.setTarget(self._targetTemperatureCelsius)
 
     @property
     def running(self):

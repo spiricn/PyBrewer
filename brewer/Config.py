@@ -31,14 +31,6 @@ class Config:
         return self._getValue('HTTP_ROOT', 'app')
 
     @property
-    def targetTemperatureCelsius(self):
-        '''
-        Target temperature in celsius
-        '''
-
-        return self._getValue('TARGET_TEMPERATURE_C', 25.0)
-
-    @property
     def relayGpioPinNumber(self):
         '''
         Relay control GPIO PIN number

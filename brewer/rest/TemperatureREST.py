@@ -24,7 +24,20 @@ class TemperatureREST:
                     'temperature/controller/toggle',
                     self.toggleControllerState
                 ),
+
+                # Set target temperature
+                RestHandler(
+                    'temperature/controller/setTarget',
+                    self._setTargetTemp
+                ),
         )
+
+    def _setTargetTemp(self, request):
+        targetTemperature = float(request.params['temperatureC'][0])
+
+        self._brewer.temperatureControl.setTargetTemperature(targetTemperature)
+
+        return (CODE_OK, MIME_JSON, {'success' : True})
 
     def toggleControllerState(self, request):
         '''
