@@ -70,7 +70,6 @@ class Brewer():
             self._modules.append(module(self))
 
         # Add switches
-        print(self.config.switches)
         for switch in self.config.switches:
             logger.debug('Add switch %r' % switch['ID'])
 

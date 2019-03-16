@@ -3,8 +3,19 @@ class Config:
     Brewer configuration
     '''
 
-    def __init__(self, cfgDict):
-        self._cfgDict = cfgDict
+    def __init__(self, cfgPath):
+        self._configPath = cfgPath
+
+        with open(self._configPath, 'r') as fileObj:
+            configDict = eval(fileObj.read())
+
+        self._cfgDict = configDict
+
+    @property
+    def configPath(self):
+        '''
+        '''
+        return self._configPath
 
     @property
     def probeDeviceId(self):

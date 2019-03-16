@@ -35,10 +35,7 @@ def main():
 
     args = parser.parse_args()
 
-    with open(args.config, 'r') as fileObj:
-        configDict = eval(fileObj.read())
-
-    brewer = Brewer(Config(configDict))
+    brewer = Brewer(Config(args.config))
 
     # Start application
 

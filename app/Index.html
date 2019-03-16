@@ -33,7 +33,7 @@ function setTargetTemperature() {
     xhr.onerror = function() {
         alert('set target failed (error: ' + xhr.status + ')');
     };
-    
+
     xhr.onload = function() {
         alert("done");
     }
@@ -52,7 +52,7 @@ function refreshStatus() {
     xhr.open('POST', 'rest/status');
 
     xhr.onload = function() {
-        
+
         offColor = '#FFFF33'
 
         onColor = '#00AAff'
@@ -60,21 +60,21 @@ function refreshStatus() {
         invalidTemperature = 99999999
 
         var status = JSON.parse(xhr.response)['res'];
-        
+
         for(var i=0; i<status.length; i++){
             var element = document.getElementById(status[i].name);
-            
+
             if(status[i].type == 'SWITCH') {
                 isOn = status[i].value != 0.0;
 
                 element.style.color = isOn ? onColor : offColor;
                 element.innerHTML = isOn ? "ON" : "OFF";
-                
+
             }
             else {
                 element.innerHTML = status[i].value;
             }
-            
+
         }
 
         setTimeout(refreshStatus,
@@ -139,7 +139,7 @@ refreshStatus()
             <td style="color: ${component.color}"> [${component.componentType.name}] </td>
             <td style="color: ${component.color}"> ${component.name} </td>
             <td id="${component.name}"> </td>
-            
+
             % if component.componentType == ComponentType.SWITCH:
             <td> <a class="main" href="javascript:toggleSwitch('${component.name}');"> toggle </a> </td>
             %endif
@@ -152,6 +152,11 @@ refreshStatus()
     <tr>
         <td> Data </td>
         <td> <a class="main" href="pybrewer.db"> Download ( ${Utils.getHumanReadableSize(os.path.getsize(Brewer.config.databasePath))} ) </a> </td>
+    </tr>
+
+    <tr>
+        <td> Config </td>
+        <td> <a class="main" href="cfg.json"> Download ( ${Utils.getHumanReadableSize(os.path.getsize(Brewer.config.configPath))} ) </a> </td>
     </tr>
 
     <tr>
