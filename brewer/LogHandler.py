@@ -53,14 +53,16 @@ class LogHandler(Handler):
             self.brewer.config.pushoverUserToken, self.brewer.config.pushoverAppToken
         )
 
+    @property
+    def pushNotifications(self):
+        return self._pushNotifications
+
     def update(self, elapsedTime):
         # Get current  date & time
         currentDate = datetime.datetime.now()
 
         # Reset notification counter on day change
         if currentDate.day != self._lastDate.day:
-            self.brewer.logDebug(__name__, 'removing notifications limit: %d != %d' % (currentDate.day, self._lastDate.day))
-
             self._lastDate = currentDate
 
             self._notificationsSent = 0
@@ -75,7 +77,7 @@ class LogHandler(Handler):
         # Send a push notification if conditions are met
         if level in self.PUSH_NOTIFICATION_LEVELS:
             if self._notificationsSent > self.MAX_DAILY_NOTIFICATIONS:
-                self.brewer.logWarning(__name__, 'Max daily notifications exceeded')
+                logger.warning('Max daily notifications exceeded')
 
             else:
                 levelMap = {

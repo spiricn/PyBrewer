@@ -24,4 +24,11 @@ class LogREST:
                                 {'success' : True, 'res' : self._brewer.getModule(LogHandler).clear()})
                 ),
 
+                # Fetch relay state
+                RestHandler(
+                    'log/test',
+                    lambda request: (CODE_OK, MIME_JSON,
+                                {'success' : True, 'res' : self._brewer.getModule(LogHandler).pushNotifications.sendNotification('PyBrewer', 'This is a test message.    ')})
+                ),
+
         )

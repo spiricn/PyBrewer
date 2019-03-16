@@ -13,7 +13,7 @@ LOG_LEVEL_MAP = {
     logging.WARN : 'WARNING',
     logging.ERROR : 'ERROR',
     logging.CRITICAL : 'CRITICAL',
-    
+
 }
 %>
 
@@ -50,10 +50,25 @@ function clearLogs() {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', 'rest/log/clear');
 
-    xhr.onreadystatechange  = function() {
+    xhr.onload  = function() {
         location.reload(true);
     };
-    
+
+    xhr.onerror = function() {
+        alert('toggle failed (error: ' + xhr.status + ')');
+    };
+
+    xhr.send()
+}
+
+function testNotification() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/log/test');
+
+    xhr.onload  = function() {
+        alert('Notification sent');
+    };
+
     xhr.onerror = function() {
         alert('toggle failed (error: ' + xhr.status + ')');
     };
@@ -70,11 +85,12 @@ function clearLogs() {
 <%include file="Navbar.html"/>
 
 <a class="main" href="javascript:clearLogs();"> Clear </a>
+<a class="main" href="javascript:testNotification();"> Test notification </a>
 
 <%
 
 import datetime
- 
+
 latestError = Brewer.getModule(LogHandler).getLatestError()
 if latestError:
     latestError = datetime.datetime.now() - latestError
