@@ -12,6 +12,12 @@ class TemperatureReader():
     # Maximum read frequency
     TEMP_READ_PERIOD = 2
 
+    # Number of attempts we'll make during temperature reads
+    NUM_READ_RETRIES = 3
+
+    # Sleep between read attempts
+    RETRY_SLEEP_SEC = 0.5
+
     def __init__(self, deviceId, validTempRange, errorCallback=None):
         # Global lock
         self._lock = Lock()
@@ -28,7 +34,7 @@ class TemperatureReader():
         self._deviceId = deviceId
 
         self._validTemperatureRange = validTempRange
-        
+
         self._errorCallback = errorCallback
 
     def getTemperatureCelsius(self):
@@ -45,8 +51,22 @@ class TemperatureReader():
 
             # Read new temperature if the value is stale or invalid
             if self._cachedTemp == None or elapsedTime >= self.TEMP_READ_PERIOD or not self._validTempC(self._cachedTemp):
+                currentTempC = TemperatureSensor.TEMP_INVALID_C
+
+                # Read current temperature (with retries)
+                for i in range(self.NUM_READ_RETRIES):
+                    currentTempC = self._temperatureSensor.getTemperatureCelsius()
+
+                    # Read failed, so sleep & re-try
+                    if not self._validTempC(currentTempC):
+                        time.sleep(self.RETRY_SLEEP_SEC)
+                        continue
+
+                    # Read successful
+                    break
+
                 # Cache the value & remember when we got it
-                self._cachedTemp = self._temperatureSensor.getTemperatureCelsius()
+                self._cachedTemp = currentTempC
                 self._lastRead = currentTime
 
                 # Check if the temperature is in valid range
@@ -62,5 +82,5 @@ class TemperatureReader():
         # Temperature is considered valid if it's in specified valid range
         minValidTempC, maxValidTempC = self._validTemperatureRange
 
-        return self._cachedTemp > minValidTempC and self._cachedTemp < maxValidTempC
+        return tempC > minValidTempC and tempC < maxValidTempC
 
