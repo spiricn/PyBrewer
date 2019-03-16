@@ -95,9 +95,9 @@ var rawSamples = {}
 % for component in Brewer.getModule(HardwareHandler).getComponents():
     % if component.graph:
         
-data["component${component.name.replace(' ', '_')}"] = [];
+data["component${component.id}"] = [];
 
-rawSamples["component${component.name.replace(' ', '_')}"] = ${samples['samples'][component.name]};
+rawSamples["component${component.id}"] = ${samples['samples'][component.id]};
 
     % endif
     
@@ -107,7 +107,7 @@ rawSamples["component${component.name.replace(' ', '_')}"] = ${samples['samples'
 for(var i=0; i<timeSamples.length; i++){
     % for component in Brewer.getModule(HardwareHandler).getComponents():
         % if component.graph:
-            data["component${component.name.replace(' ', '_')}"].push({ x: timeSamples[i], y : rawSamples["component${component.name.replace(' ', '_')}"][i]});
+            data["component${component.id}"].push({ x: timeSamples[i], y : rawSamples["component${component.id}"][i]});
     % endif
     
     % endfor
@@ -203,7 +203,7 @@ for(var i=0; i<timeSamples.length; i++){
                 % for component in Brewer.getModule(HardwareHandler).getComponents():
                     % if component.graph:
                         {
-                        "values" : rawSamples['component${component.name.replace(' ', '_')}'],
+                        "values" : rawSamples['component${component.id}'],
                         "text" : "${component.name}",
                         "line-color": '${component.color}',
                         legendItem:{

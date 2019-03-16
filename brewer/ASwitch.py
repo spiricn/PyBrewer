@@ -4,8 +4,8 @@ from abc import abstractmethod
 
 class ASwitch(AComponent):
 
-    def __init__(self, name, color, graph):
-        AComponent.__init__(self, name, ComponentType.SWITCH, color, graph)
+    def __init__(self, name : str, id : str, color : str, graph : bool):
+        AComponent.__init__(self, name, id, ComponentType.SWITCH, color, graph)
 
     @abstractmethod
     def isOn(self):

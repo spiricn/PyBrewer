@@ -57,8 +57,8 @@ class Brewer():
                     SettingsHandler,
                     SessionHandler,
                     LogHandler,
-                    HistoryHandler,
                     TemperatureControlHandler,
+                    HistoryHandler,
                     HardwareHandler,
                     NotificationHandler
         )
@@ -70,11 +70,14 @@ class Brewer():
             self._modules.append(module(self))
 
         # Add switches
+        print(self.config.switches)
         for switch in self.config.switches:
-            self.getModule(HardwareHandler).addCustom(
+            logger.debug('Add switch %r' % switch['ID'])
 
+            self.getModule(HardwareHandler).addCustom(
                 RelaySwitch(
                     switch['NAME'],
+                    switch['ID'],
                     switch['COLOR'],
                     IOPin.createOutput(switch['GPIO_PIN']),
                     bool(switch['GRAPH'])
@@ -83,9 +86,12 @@ class Brewer():
 
         # Add sensors
         for sensor in self.config.sensors:
+            logger.debug('Add sensor %r' % sensor['ID'])
+
             self.getModule(HardwareHandler).addCustom(
                 ProbeSensor(
                     sensor['NAME'],
+                    sensor['ID'],
                     sensor['COLOR'],
                     TemperatureReader(sensor['DEV_ID'], self.config.validTemperatureRangeCelsius, lambda errorMessage: self.logError("TemperatureReader", errorMessage)),
                     bool(sensor['GRAPH'])

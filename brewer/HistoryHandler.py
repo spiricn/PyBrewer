@@ -5,6 +5,7 @@ from contextlib import closing
 from brewer.HardwareHandler import HardwareHandler
 from brewer.AComponent import ComponentType
 from rpi.DS18B20.TemperatureSensor import TemperatureSensor
+import sqlite3
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,9 @@ class HistoryHandler(Handler):
     '''
     Handler which records temperature / controller / relay history
     '''
+
+    # Component column value name prefix
+    COMP_COLUMN_PREFIX = 'COMP_'
 
     # Sample recording rate
     SAMPLE_PERIOD_SEC = 30
@@ -56,31 +60,45 @@ class HistoryHandler(Handler):
         # Get current time
         currentDate = datetime.datetime.now()
 
-        for component in self.brewer.getModule(HardwareHandler).getComponents():
+        sampleValues = [
+            currentDate.strftime(self.DATE_FORMAT),
+            currentDate.strftime(self.TIME_FORMAT),
+        ]
 
+        sampleColumns = [
+            self.COL_DATE,
+            self.COL_TIME
+        ]
+
+        sampleColumns += self._getComponentColumns()
+
+        for component in self.brewer.getModule(HardwareHandler).getComponents():
             if component.componentType == ComponentType.SENSOR:
                 value = component.getValue()
             elif component.componentType == ComponentType.SWITCH:
                 value = 1.0 if component.isOn() else 0.0
 
-            # Create a temperature/seconds sample
-            sample = (currentDate.strftime(self.DATE_FORMAT),
-                      currentDate.strftime(self.TIME_FORMAT),
-                      value,
-                      component.name
-            )
+            sampleValues.append(value)
 
-            # Insert into database
-            with self.brewer.database as conn:
-                with conn:
-                    with closing(conn.cursor()) as cursor:
-                        cursor.execute('INSERT INTO %s VALUES (?,?,?,?)'
-                                        % (self.TABLE_SAMPLES,),
-                                        sample
-                        )
+        # Insert into database
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('INSERT INTO %s (%s) VALUES (%s)'
+                                    % (self.TABLE_SAMPLES, ','.join(sampleColumns), ','.join(['?'] * len(sampleValues))),
+                                    sampleValues
+                    )
 
         # Reset time
         self._elapsedSec = 0
+
+    def _getComponentColumns(self):
+        sampleColumns = []
+
+        for component in self.brewer.getModule(HardwareHandler).getComponents():
+            sampleColumns.append(self._getComponentColumnName(component))
+
+        return sampleColumns
 
     def getRecords(self):
         '''
@@ -113,46 +131,46 @@ class HistoryHandler(Handler):
 
         with self.brewer.database as conn:
             with closing(conn.cursor()) as cursor:
-                res = cursor.execute('SELECT DISTINCT(%s) FROM %s WHERE datetime(%s || " " || %s) BETWEEN ? AND ? ORDER BY %s'
-                  % (self.COL_COMPONENT,
-                     self.TABLE_SAMPLES,
-                     self.COL_DATE, self.COL_TIME,
-                     self.COL_COMPONENT),
-                  (startDate, endDate)
-                )
-
-                components = [i[0] for i in res.fetchall()]
-
                 timeSamples = []
 
                 samples = {}
 
-                for index, component in enumerate(components):
-                    res = cursor.execute('''
-                            SELECT %s, %s, 
-                            CASE
-                                WHEN %s > 9999 THEN 0
-                            ELSE %s
-                            END
+                # List of component value columns
+                compColumns = self._getComponentColumns()
 
-                            FROM %s 
+                # Colum names we're querying
+                columns = [self.COL_DATE, self.COL_TIME] + compColumns
 
-                            WHERE %s=? AND datetime(%s || " " || %s) BETWEEN ? and ? ORDER BY datetime(%s || " " ||  %s)'''
-                                % (self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.COL_VALUE,
-                                   self.TABLE_SAMPLES,
-                                   self.COL_COMPONENT, self.COL_DATE, self.COL_TIME,
-                                   self.COL_DATE, self.COL_TIME
-                                   ),
-                                (component, startDate.strftime(self.DATE_TIME_FORMAT), endDate.strftime(self.DATE_TIME_FORMAT))
-                    )
-#
-                    samples[component] = []
+                res = cursor.execute('''
+                        SELECT %s
 
-                    for date, time, value in res.fetchall():
-                        if index == 0:
-                            timeSamples.append(date + 'T' + time)
+                        FROM %s 
 
-                        samples[component].append(value);
+                        WHERE datetime(%s || " " || %s) BETWEEN ? and ? ORDER BY datetime(%s || " " ||  %s)'''
+                            % (','.join(columns),
+                                self.TABLE_SAMPLES,
+                                self.COL_DATE, self.COL_TIME,
+                                self.COL_DATE, self.COL_TIME
+                                ),
+                            (startDate.strftime(self.DATE_TIME_FORMAT), endDate.strftime(self.DATE_TIME_FORMAT))
+                )
+
+                for values in res.fetchall():
+                    # Create time sample
+                    timeSamples.append(values[0] + 'T' + values[1])
+
+                    # Component values
+                    compValues = values[2:]
+
+                    # component names
+                    compNames = [self._getComponentName(i) for i in compColumns]
+
+                    # Create sample values
+                    for index, compName in enumerate(compNames):
+                        if compName not in samples:
+                            samples[compName] = []
+
+                        samples[compName].append(compValues[index])
 
                 return {'time' : timeSamples, 'samples' : samples}
 
@@ -161,6 +179,40 @@ class HistoryHandler(Handler):
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
-                    cursor.execute('CREATE TABLE IF NOT EXISTS %s (%s text, %s text, %s real, %s text)'
-                                   % (self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME, self.COL_VALUE, self.COL_COMPONENT)
+                    # Create base table
+                    cursor.execute('CREATE TABLE IF NOT EXISTS %s (%s text, %s text)'
+                                   % (self.TABLE_SAMPLES, self.COL_DATE, self.COL_TIME)
                     )
+
+                    # Add column for each component dynamically
+                    for component in self.brewer.getModule(HardwareHandler).getComponents():
+                        # Create column name from component name
+                        name = self._getComponentColumnName(component)
+
+                        # Add the column
+                        try:
+                            cursor.execute('ALTER TABLE %s ADD COLUMN %s REAL'
+                                % ( self.TABLE_SAMPLES, name)
+                            )
+                        except sqlite3.OperationalError as e:
+                            # Exception thrown if col already exists, probably not the best of solutions..
+                            pass 
+
+    @staticmethod
+    def _getComponentColumnName(component):
+        '''
+        Gets database column name for given component
+        '''
+
+        return HistoryHandler.COMP_COLUMN_PREFIX + component.id
+
+    @staticmethod
+    def _getComponentName(columName):
+        '''
+        Gets component name from given column name
+        '''
+
+        if not columName.startswith(HistoryHandler.COMP_COLUMN_PREFIX):
+            raise RuntimeError('Invalid colum name %r' % columName)
+
+        return columName[len(HistoryHandler.COMP_COLUMN_PREFIX):]

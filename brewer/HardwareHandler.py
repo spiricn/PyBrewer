@@ -1,6 +1,7 @@
 from brewer.Handler import Handler
 import logging
 from brewer.AComponent import ComponentType
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +21,15 @@ class HardwareHandler(Handler):
 
         return sorted(components, key=lambda x: x.componentType.value)
 
-    def findComponent(self, name : str):
-        if name in self._components:
-            return self._components[name]
+    def findComponentByName(self, name : str):
+        for component in self._components.values():
+            if component.name == name:
+                return component
+        return None
+
+    def findComponent(self, componentId : str):
+        if componentId in self._components:
+            return self._components[componentId]
 
         return None
 
@@ -30,6 +37,12 @@ class HardwareHandler(Handler):
         if component.name in self._components:
             raise RuntimeError('Component with name %r already exists' % component.name)
 
-        self._components[component.name] = component
+        if not re.compile('^[a-z0-9A-Z_]+$').match(component.id):
+            raise RuntimeError('Invalid component ID: %r' % component.id)
+
+        if component.id in self._components:
+            raise RuntimeError('Component with ID %r already exists' % component.id)
+
+        self._components[component.id] = component
 
         logger.debug('new component: ' + str(component))

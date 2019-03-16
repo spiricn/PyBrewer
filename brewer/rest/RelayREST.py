@@ -38,7 +38,7 @@ class RelayREST:
 
         switchName = request.params['name'][0]
 
-        pin = self._brewer.getModule(HardwareHandler).findComponent(switchName)
+        pin = self._brewer.getModule(HardwareHandler).findComponentByName(switchName)
 
         pin.setOn(not pin.isOn())
 
