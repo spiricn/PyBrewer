@@ -104,7 +104,7 @@ class HistoryHandler(Handler):
         '''
         Get records by day
 
-        @return List of dates we have records for. Dates are encoded in self.DATE_FORMAT format 
+        @return List of dates we have records for. Dates are encoded in self.DATE_FORMAT format
 
         TODO: Return a class of records instead of a date string
         '''
@@ -115,8 +115,12 @@ class HistoryHandler(Handler):
                                                      % (self.COL_DATE, self.TABLE_SAMPLES, self.COL_DATE)
                 ).fetchall()]
 
-    def getSamples(self, date):
-        startDate = datetime.datetime.strptime(date, self.DATE_FORMAT)
+
+    def getSamples(self, date=None):
+        if date:
+            startDate = datetime.datetime.strptime(date, self.DATE_FORMAT)
+        else:
+            startDate = datetime.datetime.now() - datetime.timedelta(hours=24)
 
         return self.getSamplesRange(startDate,
                                     startDate + datetime.timedelta(hours=24))
@@ -144,7 +148,7 @@ class HistoryHandler(Handler):
                 res = cursor.execute('''
                         SELECT %s
 
-                        FROM %s 
+                        FROM %s
 
                         WHERE datetime(%s || " " || %s) BETWEEN ? and ? ORDER BY datetime(%s || " " ||  %s)'''
                             % (','.join(columns),
@@ -196,7 +200,7 @@ class HistoryHandler(Handler):
                             )
                         except sqlite3.OperationalError as e:
                             # Exception thrown if col already exists, probably not the best of solutions..
-                            pass 
+                            pass
 
     @staticmethod
     def _getComponentColumnName(component):

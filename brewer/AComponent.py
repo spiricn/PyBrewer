@@ -36,3 +36,11 @@ class AComponent:
     def color(self):
         return self._color
 
+    def serialize(self):
+        return {
+            'id' : self.id,
+            'graph' : self.graph,
+            'componentType' : self.componentType.name,
+            'name' : self.name,
+            'color' : self.color
+        }

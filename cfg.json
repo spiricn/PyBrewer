@@ -1,0 +1,37 @@
+{
+    "HTTP_PORT" : 8080,
+
+    "HTTP_ROOT" : "app",
+
+    "TARGET_TEMPERATURE_C" : 17.5,
+
+    "WARNING_TEMP_C" : 20.0,
+
+    "TEMPERATURE_HYSTERESIS_C" : 0.1,
+
+#    "PUSHOVER_APP_TOKEN" : "akz6ewidthrd4dquuwu6m1mr26m38p",
+
+#    "PUSHOVER_USER_TOKEN" : "u6gsg6k4tcea282m7dbnnax8pir799",
+
+    "TEMPERATURE_CONTROL_MODE" : "MODE_HEAT",
+
+    "TEMPERATURE_SENSORS" : [
+                {"NAME" : "Wort Temperature", "ID"  : "WORT_001", "DEV_ID" : "28-03168cedaeff", "COLOR" : "rgb(255, 201, 14)", "GRAPH" : True},
+
+                {"NAME" : "Coolant Temperature", "ID" : "COOLANT_001", "DEV_ID" : "28-0516a0632dff", "COLOR" : "rgb(153, 217, 234)", "GRAPH" : True},
+     ],
+
+     "SWITCHES" : [
+        {"NAME" : "Heating", "ID" : "TEMP_001",  "GPIO_PIN" : 14, "COLOR" : "rgb(148, 12, 18)", "GRAPH" : True},
+
+        {"NAME" : "Pump", "ID" : "PUMP_001", "GPIO_PIN" : 18, "COLOR" : "rgb(63, 72, 204)", "GRAPH" : False},
+     ],
+
+     "WORT_SENSOR" : "WORT_001",
+
+     "EXTERNAL_SENSOR" : "COOLANT_001",
+
+     "THERMAL_SWITCH" : "TEMP_001",
+
+     "PUMP_SWITCH" : "PUMP_001",
+}

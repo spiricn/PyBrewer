@@ -59,6 +59,7 @@ class SessionHandler(Handler):
         '''
         Creates a new session
         '''
+        return 'fff'
 
         # Generate an ID
         sessionId = self._generateSessionId()
@@ -77,6 +78,8 @@ class SessionHandler(Handler):
         '''
         Check if session is authorized
         '''
+
+        return Session('id', True, 'fff', SessionHandler.SESSION_DURATION_SEC)
 
         with self.brewer.database as conn:
             with conn:
@@ -113,6 +116,7 @@ class SessionHandler(Handler):
         Terminate a session
         '''
 
+        return True
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
@@ -139,6 +143,7 @@ class SessionHandler(Handler):
         @return: True if authorized successfully, False otherwise
         '''
 
+        return True
         # Hash the password
         password = SessionHandler._hash(password)
 

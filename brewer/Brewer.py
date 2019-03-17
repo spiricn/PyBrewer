@@ -14,6 +14,7 @@ from brewer.TemperatureControlHandler import TemperatureControlHandler
 from brewer.SettingsHandler import SettingsHandler
 from brewer.rest.HistoryREST import HistoryREST
 from brewer.rest.LogREST import LogREST
+from brewer.rest.HardwareREST import HardwareREST
 from rest.RelayREST import RelayREST
 from rest.TemperatureREST import TemperatureREST
 from rpi.IOPin import IOPin
@@ -184,6 +185,7 @@ class Brewer():
 
         # Add all the REST modules
         restModules = (
+            HardwareREST(self),
             TemperatureREST(self),
             RelayREST(self),
             LogREST(self),

@@ -1,0 +1,22 @@
+<button mat-raised-button color="primary" (click)="clear()"> Clear </button>
+<button mat-raised-button color="primary" (click)="test()"> Test </button>
+
+<mat-table [dataSource]="data" class="mat-elevation-z8">
+    <!-- Module Column -->
+    <ng-container matColumnDef="module">
+      <mat-header-cell *matHeaderCellDef> Module </mat-header-cell>
+      <mat-cell *matCellDef="let element"> {{element.module}} </mat-cell>
+    </ng-container>
+
+    <!-- Message Column -->
+    <ng-container matColumnDef="message">
+        <mat-header-cell *matHeaderCellDef> Module </mat-header-cell>
+        <mat-cell *matCellDef="let element"> {{element.message}} </mat-cell>
+    </ng-container>
+
+
+    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+    <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+  </mat-table>
+
+

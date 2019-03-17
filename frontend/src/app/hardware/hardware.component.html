@@ -1,0 +1,23 @@
+<mat-list>
+
+    <mat-list-item *ngFor="let component of components">
+
+        <mat-chip-list>
+          <mat-chip color="primary" selected> {{component.name}}  </mat-chip>
+          <mat-chip> {{component.componentType}}  </mat-chip>
+          <mat-chip color="accent" selected *ngIf="component.componentType != 'SWITCH'"> {{component.value}}  </mat-chip>
+
+          </mat-chip-list>
+
+
+      <mat-slide-toggle
+        *ngIf="component.componentType == 'SWITCH'"
+        (click)="onClick(component)"
+        [checked]="component.value > 0"
+
+       >  </mat-slide-toggle>
+
+
+      <mat-divider></mat-divider>
+    </mat-list-item>
+</mat-list>
