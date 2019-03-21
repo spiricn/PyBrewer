@@ -28,6 +28,8 @@ from brewer.RelaySwitch import RelaySwitch
 from brewer.ProbeSensor import ProbeSensor
 from brewer.TemperatureReader import TemperatureReader
 from brewer.NotificationHandler import NotificationHandler
+from brewer.LoggingHandler import LoggingHandler
+from logging import Formatter
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +48,13 @@ class Brewer():
         IOPin.init()
 
         logging.getLogger("Adafruit_I2C").setLevel(logging.WARNING)
+
+        rootLogger = logging.getLogger()
+        rootLogger.setLevel(logging.NOTSET)
+
+        self._logHandler = LoggingHandler(os.path.join(config.root, 'log.txt'))
+        rootLogger.addHandler(self._logHandler)
+        self._logHandler.setFormatter(Formatter('%(asctime)s %(levelname)s/%(name)s: %(message)s'))
 
         # Configuration
         self._config = config

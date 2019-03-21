@@ -26,10 +26,6 @@ def main():
 
     global brewer
 
-    # Setup logging
-    logging.basicConfig(level=logging.DEBUG,
-            format='%(asctime)s %(levelname)s/%(name)s: %(message)s')
-
     parser = argparse.ArgumentParser()
     parser.add_argument('config', help='Configuration file path')
 
