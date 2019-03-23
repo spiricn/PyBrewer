@@ -14,11 +14,14 @@ import {
   MatChipsModule,
   MatSlideToggleModule,
   MatTableModule,
+  MatProgressSpinnerModule,
 } from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NavigationComponent } from './navigation/navigation.component';
 import { LoggingComponent } from './logging/logging.component';
 import { TemperatureComponent } from './temperature/temperature.component';
+
+import { ZingChartDirective } from './zing-chart.directive';
 
 @NgModule({
   declarations: [
@@ -26,7 +29,8 @@ import { TemperatureComponent } from './temperature/temperature.component';
     HardwareComponent,
     NavigationComponent,
     LoggingComponent,
-    TemperatureComponent
+    TemperatureComponent,
+    ZingChartDirective
   ],
   imports: [
     BrowserModule,
@@ -42,6 +46,7 @@ import { TemperatureComponent } from './temperature/temperature.component';
     MatChipsModule,
     MatSlideToggleModule,
     MatTableModule,
+    MatProgressSpinnerModule,
   ],
   exports: [MatListModule, MatCheckboxModule, MatTabsModule, MatToolbarModule, MatButtonModule],
 
