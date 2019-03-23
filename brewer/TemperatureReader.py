@@ -10,7 +10,7 @@ class TemperatureReader():
     '''
 
     # Maximum read frequency
-    TEMP_READ_PERIOD = 2
+    READ_CACHE_DURATION_SEC = 5
 
     # Number of attempts we'll make during temperature reads
     NUM_READ_RETRIES = 3
@@ -50,7 +50,7 @@ class TemperatureReader():
             elapsedTime = currentTime - self._lastRead
 
             # Read new temperature if the value is stale or invalid
-            if self._cachedTemp == None or elapsedTime >= self.TEMP_READ_PERIOD or not self._validTempC(self._cachedTemp):
+            if self._cachedTemp == None or elapsedTime >= self.READ_CACHE_DURATION_SEC or not self._validTempC(self._cachedTemp):
                 currentTempC = TemperatureSensor.TEMP_INVALID_C
 
                 # Read current temperature (with retries)
