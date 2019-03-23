@@ -27,6 +27,10 @@ class SessionServlet(Servlet):
         self._sessionHandler = self._brewer.getModule(SessionHandler)
 
     def handleRequest(self, request, response):
+        # Skip handling request if authorization is disabled
+        if not self._brewer.config.authorizationEnabled:
+            return False
+
         session = None
 
         # Get the session ID from cookie, or create one if it doesn't exist

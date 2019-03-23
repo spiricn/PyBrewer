@@ -12,6 +12,13 @@ class Config:
         self._cfgDict = configDict
 
     @property
+    def authorizationEnabled(self):
+        '''
+        '''
+
+        return self._getValue('AUTHORIZATION_ENABLED', False)
+
+    @property
     def configPath(self):
         '''
         '''
