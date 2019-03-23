@@ -8,6 +8,21 @@ from brewer.PushNotifications import PushNotifications
 logger = logging.getLogger(__name__)
 
 
+class LogEntry:
+    def __init__(self, level, module, message, time):
+        self._level = level
+        self._module = module
+        self._message = message
+        self._time = time
+
+    def serialize(self):
+        return {
+            'level' : self._level,
+            'module' : self._module,
+            'message' : self._message,
+            'time' : self._time.strftime(LogHandler.TIME_FORMAT)
+        }
+
 class LogHandler(Handler):
     '''
     Handlers which stores logs into the database, and reads them
@@ -84,7 +99,6 @@ class LogHandler(Handler):
                     logging.ERROR : 'ERROR',
                     logging.WARN: 'WARNING',
                     logging.CRITICAL : 'CRITICAL',
-
                 }
 
                 self._pushNotifications.sendNotification('%s: %s' % (levelMap[level], module),
@@ -125,8 +139,8 @@ class LogHandler(Handler):
             with conn:
                 with closing(conn.cursor()) as cursor:
                     # Parse the time/date and HTML escape the message
-                    return [(level, module, html.escape(message), datetime.datetime.strptime(time, self.TIME_FORMAT))
-                             for level, module, message, time in cursor.execute('SELECT * FROM %s ORDER BY %s DESC'
+                    return [LogEntry(level, module, html.escape(message), datetime.datetime.strptime(time, self.TIME_FORMAT))
+                    for level, module, message, time in cursor.execute('SELECT * FROM %s ORDER BY %s DESC'
                                                                                 % (self.TABLE_LOGS, self.COL_TIME)
                              ).fetchall()]
 
