@@ -9,11 +9,11 @@ declare var zingchart: any;
 })
 export class ZingChartDirective implements AfterViewInit, OnDestroy {
   @Input()
-  chart : ZingChartModel;
+  chart : Object;
 
   @HostBinding('id')
   get something() {
-    return this.chart.id;
+    return this.chart['id'];
   }
 
   constructor(private zone: NgZone) {}
@@ -23,17 +23,12 @@ export class ZingChartDirective implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-      zingchart.exec(this.chart.id, 'destroy');
+      zingchart.exec(this.chart['id'], 'destroy');
   }
 
   render() {
     this.zone.runOutsideAngular(() => {
-      zingchart.render({
-          id : this.chart.id,
-          data : this.chart.data,
-          width : this.chart.width,
-          height: this.chart.height
-      });
+      zingchart.render(this.chart);
   });
   }
 }
