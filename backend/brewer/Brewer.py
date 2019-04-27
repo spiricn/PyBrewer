@@ -6,6 +6,12 @@ from threading import Thread
 from time import sleep
 import time
 
+from rpi.IOPin import IOPin
+from ssc.http import HTTP
+from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
+from ssc.servlets.RestServlet import RestHandler
+from ssc.servlets.ServletContainer import ServletContainer
+
 import brewer
 from brewer.HistoryHandler import HistoryHandler
 from brewer.LogHandler import LogHandler
@@ -15,13 +21,8 @@ from brewer.SettingsHandler import SettingsHandler
 from brewer.rest.HistoryREST import HistoryREST
 from brewer.rest.LogREST import LogREST
 from brewer.rest.HardwareREST import HardwareREST
-from rest.RelayREST import RelayREST
-from rest.TemperatureREST import TemperatureREST
-from rpi.IOPin import IOPin
-from ssc.http import HTTP
-from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
-from ssc.servlets.RestServlet import RestHandler
-from ssc.servlets.ServletContainer import ServletContainer
+from brewer.rest.RelayREST import RelayREST
+from brewer.rest.TemperatureREST import TemperatureREST
 from brewer.SessionServlet import SessionServlet
 from brewer.rest.UserREST import UserREST
 from brewer.HardwareHandler import HardwareHandler, ComponentType

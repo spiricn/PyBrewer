@@ -2,10 +2,11 @@ import sys
 import os
 import threading
 import logging
-from Config import Config
-from Brewer import Brewer
 import argparse
 import traceback
+
+from brewer.Config import Config
+from brewer.Brewer import Brewer
 
 logger = logging.getLogger(__name__)
 

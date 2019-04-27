@@ -1,0 +1,5 @@
+build/
+dist/
+pybrewer_1.0.0.deb
+pybrewer_1.0.0/
+App.spec
