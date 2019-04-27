@@ -5,7 +5,6 @@ import logging
 from Config import Config
 from Brewer import Brewer
 import argparse
-from brewer import __version__ as appVersion
 import traceback
 
 logger = logging.getLogger(__name__)
@@ -35,7 +34,7 @@ def main():
 
     # Start application
 
-    logger.debug('\n#################\nPyBrewer %s started, press CTRL+C to stop\n#################\n' % appVersion)
+    logger.debug('\n#################\nPyBrewer started, press CTRL+C to stop\n#################\n')
 
     brewer.start()
 

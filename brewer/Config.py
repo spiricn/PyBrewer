@@ -1,3 +1,5 @@
+import os
+
 class Config:
     '''
     Brewer configuration
@@ -46,7 +48,12 @@ class Config:
         HTTP server root directory
         '''
 
-        return self._getValue('HTTP_ROOT', 'app')
+        rootPath = self._getValue('HTTP_ROOT', 'app')
+
+        if not os.path.isabs(rootPath):
+            raise RuntimeError('HTTP_ROOT config not absolute %r' % rootPath)
+
+        return rootPath
 
     @property
     def relayGpioPinNumber(self):
@@ -86,7 +93,7 @@ class Config:
         Database path
         '''
 
-        return self._getValue('DATABASE_PATH', 'app/pybrewer.db')
+        return self._getValue('DATABASE_PATH', os.path.join(self.root, 'pybrewer.db'))
 
     @property
     def validTemperatureRangeCelsius(self):
