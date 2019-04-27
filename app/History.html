@@ -17,7 +17,7 @@ if 'entry' in request.params:
 else:
     samples = Brewer.getModule(HistoryHandler).getSamplesRange(
         datetime.datetime.now() - datetime.timedelta(hours=24), datetime.datetime.now())
-    
+
 
 %>
 
@@ -50,9 +50,9 @@ function update() {
 
     xhr.onload = function() {
         var res = JSON.parse(xhr.response).res;
-        
+
         var time = new Date();
-        
+
         zingchart.exec('myChart', 'addscalevalue', {
             graphid : 0,
             scale : 'scale-x',
@@ -61,7 +61,7 @@ function update() {
 
         for(var component in res){
             var multiplier = res[component].type == 'SWITCH' ? ${sensorValueMultiplier} : 1.0;
-            
+
             zingchart.exec('myid', 'appendseriesvalues', {
                 values : res[component].value * multiplier
             });
@@ -94,13 +94,14 @@ var rawSamples = {}
 
 % for component in Brewer.getModule(HardwareHandler).getComponents():
     % if component.graph:
-        
+
+
 data["component${component.id}"] = [];
 
 rawSamples["component${component.id}"] = ${samples['samples'][component.id]};
 
     % endif
-    
+
 % endfor
 
 
@@ -109,10 +110,10 @@ for(var i=0; i<timeSamples.length; i++){
         % if component.graph:
             data["component${component.id}"].push({ x: timeSamples[i], y : rawSamples["component${component.id}"][i]});
     % endif
-    
+
     % endfor
 }
-    
+
     var myConfig = {
             gui:{
               contextMenu:{
@@ -217,12 +218,12 @@ for(var i=0; i<timeSamples.length; i++){
           }
           ]
           };
-           
-          zingchart.render({ 
-              id : 'myChart', 
-              data : myConfig, 
-              height: '100%', 
-              width: '100%' 
+
+          zingchart.render({
+              id : 'myChart',
+              data : myConfig,
+              height: '100%',
+              width: '100%'
           });
 
 

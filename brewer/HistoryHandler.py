@@ -43,6 +43,12 @@ class HistoryHandler(Handler):
 
     COL_COMPONENT = 'component'
 
+    # Maximum sensor value to be considered valid
+    MAX_VALID_SENSOR_VALUE = 9999
+
+    # Default sensor value to be used in case reading was invalid
+    DEFAULT_SENSOR_VALUE = 0
+
     def __init__(self, brewer):
         Handler.__init__(self, brewer)
 
@@ -174,7 +180,14 @@ class HistoryHandler(Handler):
                         if compName not in samples:
                             samples[compName] = []
 
-                        samples[compName].append(compValues[index])
+
+                        value = compValues[index]
+
+                        if value >= self.MAX_VALID_SENSOR_VALUE:
+                            # Invalid value, so use default value
+                            value = self.DEFAULT_SENSOR_VALUE
+
+                        samples[compName].append(value)
 
                 return {'time' : timeSamples, 'samples' : samples}
 
