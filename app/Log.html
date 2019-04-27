@@ -106,14 +106,14 @@ if latestError:
 <th> Level </th> <th> Module </th> <th> Message </th> <th> Time </th>
 </tr>
 
-%for level, module, message, time in Brewer.getModule(LogHandler).getLogs():
+%for entry in Brewer.getModule(LogHandler).getLogs():
 
-<tr class="${LOG_LEVEL_MAP[level]}">
+<tr class="${LOG_LEVEL_MAP[entry.level]}">
 
-<td> ${LOG_LEVEL_MAP[level]} </td>
-<td> ${module} </td>
-<td> <pre> ${message} </pre> </td>
-<td> ${time} </td>
+<td> ${LOG_LEVEL_MAP[entry.level]} </td>
+<td> ${entry.module} </td>
+<td> <pre> ${entry.message} </pre> </td>
+<td> ${entry.time} </td>
 
 </tr>
 

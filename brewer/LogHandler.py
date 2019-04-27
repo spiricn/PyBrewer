@@ -15,6 +15,22 @@ class LogEntry:
         self._message = message
         self._time = time
 
+    @property
+    def level(self):
+        return self._level
+
+    @property
+    def module(self):
+        return self._module
+
+    @property
+    def message(self):
+        return self._message
+
+    @property
+    def time(self):
+        return self._time
+
     def serialize(self):
         return {
             'level' : self._level,
