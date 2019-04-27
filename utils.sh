@@ -16,7 +16,8 @@ pb_push() {
     rsync -avHe ssh `pwd` \
         ${PB_REMOTE_DEVICE}:${PB_REMOTE_LOCATION} \
         --exclude .git \
-        --exclude frontend
+        --exclude frontend \
+        --exclude doc
 
     popd
 }

@@ -71,8 +71,15 @@ def exceptionHook(exctype, value, tb):
     '''
 
     traceStr = ''.join(traceback.format_exception(exctype, value, tb))
-    brewer.logCritical(__name__, 'unhandled exception occurred:\n%s' %
-        traceStr)
+
+    message = 'unhandled exception occurred:\n' + traceStr
+
+    try:
+        # Log fatal message
+        brewer.logCritical(__name__, message)
+    except NameError:
+        # App not yet initialized, so just print
+        print(message)
 
     os._exit(-1)
 
