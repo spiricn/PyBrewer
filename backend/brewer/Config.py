@@ -1,4 +1,5 @@
 import os
+import sys
 
 class Config:
     '''
@@ -45,15 +46,10 @@ class Config:
     @property
     def root(self):
         '''
-        HTTP server root directory
+        Root directory
         '''
 
-        rootPath = self._getValue('HTTP_ROOT', 'app')
-
-        if not os.path.isabs(rootPath):
-            raise RuntimeError('HTTP_ROOT config not absolute %r' % rootPath)
-
-        return rootPath
+        return os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), 'app')
 
     @property
     def relayGpioPinNumber(self):
