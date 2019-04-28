@@ -5,6 +5,7 @@ import logging
 import argparse
 import traceback
 
+
 from brewer.Config import Config
 from brewer.Brewer import Brewer
 from brewer.Utils import Utils
@@ -27,15 +28,29 @@ def main():
 
     global brewer
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('config', help='Configuration file path')
+    config = Config()
 
-    args = parser.parse_args()
+    # Create home directory if it doesn't exist
+    if not os.path.isdir(config.home):
+        print('creating home dir: %r' % config.home)
+        os.mkdir(config.home)
 
-    brewer = Brewer(Config(args.config))
+    if not os.path.isfile(config.configPath):
+        # Create default config file if it doesn't exist
+        print('creating config file: %r' % config.configPath)
+        config.serialize()
+    else:
+        # Deserialize config file
+        try:
+            config.deserialize()
+        except Exception as e:
+            print('Error parsing config file %r: %r' % (config.configPath, str(e)))
+            return -1
+
+    # Instantiate brewer
+    brewer = Brewer(config)
 
     # Start application
-
     logger.debug('\n#################\nPyBrewer started, press CTRL+C to stop\n#################\n')
 
     brewer.start()
