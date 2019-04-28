@@ -29,7 +29,7 @@ main() {
 
     # Install main files
     cp -rv \
-        ${projectRoot}/app \
+        ${projectRoot}/brewer/app \
         ${installRoot}/
 
     cp -v \
