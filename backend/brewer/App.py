@@ -7,6 +7,7 @@ import traceback
 
 from brewer.Config import Config
 from brewer.Brewer import Brewer
+from brewer.Utils import Utils
 
 logger = logging.getLogger(__name__)
 
