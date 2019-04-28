@@ -47,7 +47,6 @@ main() {
     echo "Architecture: armhf" >> ${rootDir}/DEBIAN/control
     echo "Maintainer: Nikola Spiric <nikola.spiric.ns@gmail.com>" >> ${rootDir}/DEBIAN/control
     echo "Description: PyBrewer" >> ${rootDir}/DEBIAN/control
-    echo "Depends: pigpio" >> ${rootDir}/DEBIAN/control
 
     # Create the package
     dpkg-deb --build ${rootDir}
