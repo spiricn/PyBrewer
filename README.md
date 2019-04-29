@@ -19,7 +19,18 @@ Raspberry PI based homebrew temperature controller
 
 Steps necessary to build PyBrewer are described by the [Dockerfile](docker/Dockerfile).
 
-You may build it manually, or simply by building the docker image and copying the pybrewer_x.y.z.deb file out of the container.
+You may build it manually, or simply by building the docker image:
+
+```sh
+docker build --no-cache -t pybrewer .
+```
+
+ And extracting the pybrewer_x.y.z.deb archive out of the container.
+ ```sh
+docker create -ti --name dummy pybrewer bash
+docker cp dummy:/PyBrewer/package/pybrewer_x.y.z.deb .
+docker rm -fv dummy
+ ```
 
 PyBrewer can then by installed by running:
 
