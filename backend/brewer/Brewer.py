@@ -56,7 +56,7 @@ class Brewer():
         rootLogger = logging.getLogger()
         rootLogger.setLevel(logging.NOTSET)
 
-        self._logHandler = LoggingHandler(os.path.join(config.root, 'log.txt'))
+        self._logHandler = LoggingHandler(os.path.join(config.home, 'log.txt'))
         rootLogger.addHandler(self._logHandler)
         self._logHandler.setFormatter(Formatter('%(asctime)s %(levelname)s/%(name)s: %(message)s'))
 
