@@ -76,19 +76,18 @@ class TemperatureControlHandler(Handler):
 
         if not self._thermalSwitch:
             self.createMessage(MessageType.WARNING, 'Thermal switch not configured. Change configuration and restart')
-            return
 
         # Find pump switch
         self._pumpSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.pumpSwitch)
-
         if not self._pumpSwitch:
             self.createMessage(MessageType.WARNING, 'Pump switch not configured. Change configuration and restart')
-            return
 
         # Temperature sensor
         self._externalSensor = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.externalSensor)
         if not self._externalSensor:
             self.createMessage(MessageType.WARNING, 'External sensor not configured. Change configuration and restart')
+
+        if not self._thermalSwitch or not self._externalSensor or not self._externalSensor:
             return
 
         # Target temperature we're trying to achieve

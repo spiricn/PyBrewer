@@ -183,7 +183,7 @@ class HistoryHandler(Handler):
 
                         value = compValues[index]
 
-                        if value >= self.MAX_VALID_SENSOR_VALUE:
+                        if value == None or value >= self.MAX_VALID_SENSOR_VALUE:
                             # Invalid value, so use default value
                             value = self.DEFAULT_SENSOR_VALUE
 
