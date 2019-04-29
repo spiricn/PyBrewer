@@ -13,9 +13,17 @@ main() {
     while true; do
         echo "starting PyBrewer .."
 
-        # Run application
-        PYTHONPATH=${scriptDir}:$PYTHONPATH \
-            python3 ${scriptDir}/brewer/App.py "$@"
+
+        local appPath=${scriptDir}/brewer/App.py
+
+        if [ -f $appPath ]; then
+            # Run application from source code
+            PYTHONPATH=${scriptDir}:$PYTHONPATH \
+                python3 ${scriptDir}/brewer/App.py "$@"
+        else
+            # Run application from executable
+            ${scriptDir}/pybrewer
+        fi
 
         local rc=$?
 

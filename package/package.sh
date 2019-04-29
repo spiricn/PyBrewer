@@ -30,6 +30,7 @@ main() {
     # Install main files
     cp -rv \
         ${projectRoot}/brewer/app \
+        ${projectRoot}/pybrewer.sh \
         ${installRoot}/
 
     cp -v \
