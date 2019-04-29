@@ -6,6 +6,7 @@ import datetime
 from collections import namedtuple
 
 from brewer.Handler import Handler
+from brewer.Handler import MessageType
 
 logger = logging.getLogger(__name__)
 
@@ -237,6 +238,9 @@ class SessionHandler(Handler):
                         logger.debug('cleaned up %d expired sessions' % rc)
 
     def onStart(self):
+        if not self._brewer.config.authorizationEnabled:
+            self.createMessage(MessageType.WARNING, "Authorization disabled")
+
         # Create table if it does not exist
         with self.brewer.database as conn:
             with conn:
