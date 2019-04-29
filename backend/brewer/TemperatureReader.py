@@ -37,6 +37,12 @@ class TemperatureReader():
 
         self._errorCallback = errorCallback
 
+        self._lastError = 0
+
+    @property
+    def lastError(self):
+        return self._lastError
+
     def getTemperatureCelsius(self):
         '''
         Get current temperature in a thread safe way
@@ -74,6 +80,7 @@ class TemperatureReader():
                     if self._errorCallback != None:
                         self._errorCallback('temperature read failure: ' + str(self._cachedTemp) + ' C / ' + self._deviceId)
 
+                    self._lastError = time.time()
                     self._cachedTemp = TemperatureSensor.TEMP_INVALID_C
 
             return self._cachedTemp

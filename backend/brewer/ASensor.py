@@ -10,3 +10,7 @@ class ASensor(AComponent):
     @abstractmethod
     def getValue(self):
         pass
+
+    @abstractmethod
+    def isMalfunctioning(self):
+        pass

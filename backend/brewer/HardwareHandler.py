@@ -2,6 +2,7 @@ from brewer.Handler import Handler
 import logging
 from brewer.AComponent import ComponentType
 import re
+from brewer.Handler import MessageType
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ class HardwareHandler(Handler):
         Handler.__init__(self, brewer, __name__)
 
         self._components = {}
+        self._errors = {}
 
     def addCustom(self, component):
         self._addComponent(component)
@@ -46,3 +48,15 @@ class HardwareHandler(Handler):
         self._components[component.id] = component
 
         logger.debug('new component: ' + str(component))
+
+    def onGetMessages(self):
+        # Go trough all the sensors
+        for sensor in self.getComponents(ComponentType.SENSOR):
+            # If it's malfunctioning, create a message
+            if sensor.isMalfunctioning() and sensor.id not in self._errors:
+                self._errors[sensor.id] = self.createMessage(MessageType.WARNING, "Sensor malfunctioning: %r" % sensor.id)
+
+            # If not delete, the message if it exsits
+            elif not sensor.isMalfunctioning() and sensor.id in self._errors:
+                self.deleteMessage(self._errors[sensor.id])
+                del self._errors[sensor.id]

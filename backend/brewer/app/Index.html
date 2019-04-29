@@ -9,6 +9,9 @@ import os
 import datetime
 from brewer.Utils import Utils
 
+
+messages = Brewer.getMessages()
+
 %>
 
 <%include file="Header.html"/>
@@ -134,12 +137,12 @@ refreshStatus()
 
 
 
-    % if Brewer.getMessages():
+    % if messages:
     <tr><td></br></td></tr>
-    <tr><td colspan=2> <h2> Messages </h2> </td></tr>
+    <tr><td colspan=2> <h2> Messages  ( ${len(messages)} )</h2> </td></tr>
 
 
-    %for message in Brewer.getMessages():
+    %for message in messages:
     <tr>
             <td><img src=
                 % if message.type ==  MessageType.WARNING:

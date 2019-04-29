@@ -25,6 +25,8 @@ class TargetTemperatureSensor(ASensor):
     def getValue(self):
         return self._controlHandler.targetTemperatureCelsius
 
+    def isMalfunctioning(self):
+        return False
 
 class TemperatureControlSwitch(ASwitch):
 
