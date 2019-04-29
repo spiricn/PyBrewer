@@ -24,6 +24,9 @@ main() {
         if [  ${rc} == 0 ]; then
             # Exited cleanly, so stop watchdog..
             break
+        elif [  ${rc} == 64 ]; then
+            # Requested restart
+            continue;
         fi
 
         # Application crashed, so sleep & restart

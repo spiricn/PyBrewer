@@ -3,6 +3,7 @@
 from brewer.HistoryHandler import HistoryHandler
 from brewer.HardwareHandler import HardwareHandler
 from brewer.AComponent import ComponentType
+from brewer.Handler import MessageType
 
 import os
 import datetime
@@ -130,6 +131,33 @@ refreshStatus()
 <%include file="Navbar.html"/>
 
 <table>
+
+
+
+    % if Brewer.getMessages():
+    <tr><td></br></td></tr>
+    <tr><td colspan=2> <h2> Messages </h2> </td></tr>
+
+
+    %for message in Brewer.getMessages():
+    <tr>
+            <td><img src=
+                % if message.type ==  MessageType.WARNING:
+                "icon_warning.png"
+                % elif message.type ==  MessageType.INFO:
+                "icon_info.png"
+                %endif
+                ${message.type}
+                 height="42" width="42"></td>
+        <td> <p style="text-decoration: underline;"> ${message.title} </p></td>
+        <td> ${message.message} </td>
+
+
+    </tr>
+    % endfor
+
+    % endif
+
 
     <tr><td colspan=2> <h2> Components </h2> </td></tr>
 

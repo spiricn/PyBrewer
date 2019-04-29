@@ -5,7 +5,7 @@ from contextlib import closing
 class SettingsHandler(Handler):
     '''
     Key/value sqlite settings backend.
-    
+
     NOTE: Implementing this in SQL may not be the best of ideas, however
     since we want to store everything inside of a single database, and protect against unexpected
     power interruptions, this seemed like the safest way of doing things.
@@ -17,7 +17,7 @@ class SettingsHandler(Handler):
     COL_VALUE = 'value'
 
     def __init__(self, brewer):
-        Handler.__init__(self, brewer)
+        Handler.__init__(self, brewer, __name__)
 
     def putBoolean(self, key, value):
         '''
@@ -36,7 +36,7 @@ class SettingsHandler(Handler):
         @param key: Key
         @param defaultValue: Default value
 
-        @return: Actual value or defaultValue if entry doesn't exist 
+        @return: Actual value or defaultValue if entry doesn't exist
         '''
 
         return self._get(key, defaultValue) == str(True)
@@ -58,7 +58,7 @@ class SettingsHandler(Handler):
         @param key: Key
         @param defaultValue: Default value
 
-        @return: Actual value or defaultValue if entry doesn't exist 
+        @return: Actual value or defaultValue if entry doesn't exist
         '''
 
         return self._get(key, defaultValue)
@@ -80,7 +80,7 @@ class SettingsHandler(Handler):
         @param key: Key
         @param defaultValue: Default value
 
-        @return: Actual value or defaultValue if entry doesn't exist 
+        @return: Actual value or defaultValue if entry doesn't exist
         '''
 
         return float(self._get(key, defaultValue))
@@ -102,7 +102,7 @@ class SettingsHandler(Handler):
         @param key: Key
         @param defaultValue: Default value
 
-        @return: Actual value or defaultValue if entry doesn't exist 
+        @return: Actual value or defaultValue if entry doesn't exist
         '''
 
         return int(self._get(key, defaultValue))
@@ -114,7 +114,7 @@ class SettingsHandler(Handler):
         @param key: Key
         @param defaultValue: Value returned if entry does not exist
 
-        @return: value with corresponding key or default value if it doesn't exist  
+        @return: value with corresponding key or default value if it doesn't exist
         '''
 
         with self.brewer.database as conn:
@@ -135,7 +135,7 @@ class SettingsHandler(Handler):
         Put a key/value pair into database
 
         @param key: Key
-        @param value: Value  
+        @param value: Value
         '''
 
         with self.brewer.database as conn:

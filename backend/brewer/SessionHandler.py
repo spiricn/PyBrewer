@@ -50,7 +50,7 @@ class SessionHandler(Handler):
     SESSION_CLEANUP_PERIOD_SEC = 60 * 60
 
     def __init__(self, brewer):
-        Handler.__init__(self, brewer)
+        Handler.__init__(self, brewer, __name__)
 
         # Elapsed time since last session cleanup
         self._timeElapsedSec = 0

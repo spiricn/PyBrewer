@@ -71,7 +71,7 @@ class LogHandler(Handler):
     PUSH_NOTIFICATION_LEVELS = [logging.ERROR, logging.CRITICAL, logging.WARN]
 
     def __init__(self, brewer):
-        Handler.__init__(self, brewer)
+        Handler.__init__(self, brewer, __name__)
 
         # Date of last update
         self._lastDate = datetime.datetime.now()

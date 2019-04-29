@@ -47,6 +47,8 @@ class Brewer():
         # Is the brewer running or not
         self._running = False
 
+        self._restart = False
+
         IOPin.init()
 
         logging.getLogger("Adafruit_I2C").setLevel(logging.WARNING)
@@ -118,6 +120,22 @@ class Brewer():
                 return module
 
         return None
+
+    def getMessages(self):
+        '''
+        TODO
+        '''
+
+        messages = []
+
+        # Get messages from all the modules
+        for module in self._modules:
+            messages += module.getMessages()
+
+        # Sort by timestamp
+        messages.sort(key=lambda item: item.timestamp)
+
+        return messages
 
     @property
     def server(self):
@@ -207,6 +225,10 @@ class Brewer():
                 RestHandler(
                     'shutdown',
                     self._restShutdown
+                    ),
+                RestHandler(
+                    'restart',
+                    self._restRestart
                     )
             )
 
@@ -222,6 +244,11 @@ class Brewer():
         self.stop()
 
         return (CODE_OK, MIME_JSON, {'success' : True})
+
+    def _restRestart(self, request):
+        self._restart = True
+
+        return self._restShutdown(request)
 
     @property
     def temperatureControl(self):
@@ -304,4 +331,4 @@ class Brewer():
 
         self._server.stop()
 
-        return 0
+        return 0 if not self._restart else 64

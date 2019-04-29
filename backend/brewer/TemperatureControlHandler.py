@@ -9,6 +9,7 @@ from brewer.SettingsHandler import SettingsHandler
 from brewer.HardwareHandler import HardwareHandler
 from brewer.ASensor import ASensor
 from brewer.ASwitch import ASwitch
+from brewer.Handler import MessageType
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +63,34 @@ class TemperatureControlHandler(Handler):
 
     #
     def __init__(self, brewer):
-        Handler.__init__(self, brewer)
+        Handler.__init__(self, brewer, __name__)
+
+        self._initialized = False
+
+        # Controller running or not
+        self._running = False
 
     def onStart(self):
+        # Relay controller pin
+        self._thermalSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.thermalSwitch)
+
+        if not self._thermalSwitch:
+            self.createMessage(MessageType.WARNING, 'Thermal switch not configured. Change configuration and restart')
+            return
+
+        # Find pump switch
+        self._pumpSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.pumpSwitch)
+
+        if not self._pumpSwitch:
+            self.createMessage(MessageType.WARNING, 'Pump switch not configured. Change configuration and restart')
+            return
+
+        # Temperature sensor
+        self._externalSensor = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.externalSensor)
+        if not self._externalSensor:
+            self.createMessage(MessageType.WARNING, 'External sensor not configured. Change configuration and restart')
+            return
+
         # Target temperature we're trying to achieve
         self._targetTemperatureCelsius = self.brewer.getModule(SettingsHandler).getFloat(self.STG_KEY_TARGET_TEMP, 15.0)
 
@@ -73,26 +99,6 @@ class TemperatureControlHandler(Handler):
 
         # Add virtual sensor, used to monitor target temperature
         self.brewer.getModule(HardwareHandler).addCustom(TargetTemperatureSensor(self))
-
-        # Relay controller pin
-        self._thermalSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.thermalSwitch)
-
-        if not self._thermalSwitch:
-            raise RuntimeError("Unable to find switch with name %r", str(self.brewer.config.thermalSwitch))
-
-        # Find pump switch
-        self._pumpSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.pumpSwitch)
-
-        if not self._pumpSwitch:
-            raise RuntimeError("Unable to find switch with name %r", str(self.brewer.config.pumpSwitch))
-
-        # Temperature sensor
-        self._externalSensor = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.externalSensor)
-        if not self._externalSensor:
-            raise RuntimeError("Unable to find sensor with name %r", str(self.brewer.config.externalSensor))
-
-        # Controller running or not
-        self._running = False
 
         modeMap = {
             'MODE_HEAT' : TemperatureControlAlgorithm.Mode.HEAT,
@@ -115,6 +121,9 @@ class TemperatureControlHandler(Handler):
         if self.brewer.getModule(SettingsHandler).getBoolean(self.STG_KEY_STATE):
             logger.debug('restoring state')
             self.setState(True, rememberChoice=False)
+
+        # Good to go
+        self._initialized = True
 
     def onStop(self):
         # Stop the control (and don't store the choice in DB)
@@ -193,7 +202,9 @@ class TemperatureControlHandler(Handler):
         Set temperature control state on or off
         '''
 
-        if state and self._running:
+        if not self._initialized:
+            raise RuntimeError('Not initialized')
+        elif state and self._running:
             raise RuntimeError('Already running')
         elif not state and not self._running:
             raise RuntimeError('Already stopped')

@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class HardwareHandler(Handler):
 
     def __init__(self, brewer):
-        Handler.__init__(self, brewer)
+        Handler.__init__(self, brewer, __name__)
 
         self._components = {}
 

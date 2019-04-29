@@ -1,6 +1,6 @@
 <script>
 
-function shutdown() {
+function stop() {
     var confirmed = confirm("Stop PyBrewer?");
     if(!confirmed){
         return;
@@ -11,6 +11,22 @@ function shutdown() {
 
     xhr.onload = function() {
         alert('shutdown ok');
+    };
+
+    xhr.send()
+}
+
+function restart() {
+    var confirmed = confirm("Restart PyBrewer?");
+    if(!confirmed){
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/restart');
+
+    xhr.onload = function() {
+        alert('restart ok');
     };
 
     xhr.send()
@@ -46,7 +62,9 @@ function logout() {
 
 <td> <a class="main" href="history"> Temperature </a> </td>
 
-<td> <a class="main" href="javascript:shutdown();"> Shutdown </a> </td>
+<td> <a class="main" href="javascript:shutdown();"> Stop </a> </td>
+
+<td> <a class="main" href="javascript:restart();"> Restart </a> </td>
 
 <td> <a class="main" href="javascript:logout();"> Logout </a> </td>
 

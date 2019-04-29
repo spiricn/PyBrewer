@@ -10,7 +10,7 @@ class NotificationHandler(Handler):
     TEMPERATURE_HYSTERESIS_C = 1.0
 
     def __init__(self, brewer):
-        Handler.__init__(self, brewer)
+        Handler.__init__(self, brewer, __name__)
 
         # Indication of a warning has been sent for a
         self._warningSent = {}

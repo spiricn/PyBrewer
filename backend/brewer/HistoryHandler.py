@@ -50,7 +50,7 @@ class HistoryHandler(Handler):
     DEFAULT_SENSOR_VALUE = 0
 
     def __init__(self, brewer):
-        Handler.__init__(self, brewer)
+        Handler.__init__(self, brewer, __name__)
 
         # Time elapsed since last sample was recorded
         self._elapsedSec = self.SAMPLE_PERIOD_SEC
