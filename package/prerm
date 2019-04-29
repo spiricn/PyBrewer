@@ -1,0 +1,2 @@
+# Stop the service
+/etc/init.d/pybrewer stop

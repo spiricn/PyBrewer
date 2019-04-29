@@ -1,0 +1,7 @@
+systemctl daemon-reload
+
+# Make the service start at boot
+update-rc.d pybrewer defaults
+
+# (Re)start the service
+/etc/init.d/pybrewer restart

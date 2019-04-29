@@ -37,6 +37,11 @@ main() {
         `pwd`/dist/App \
         ${installRoot}/pybrewer
 
+    # Install service script
+    mkdir -p ${rootDir}/etc/init.d
+    cp -rv \
+        pybrewer.sh ${rootDir}/etc/init.d/pybrewer
+
     # Create the manifest
     mkdir -p ${rootDir}/DEBIAN
 
@@ -48,6 +53,12 @@ main() {
     echo "Architecture: armhf" >> ${rootDir}/DEBIAN/control
     echo "Maintainer: Nikola Spiric <nikola.spiric.ns@gmail.com>" >> ${rootDir}/DEBIAN/control
     echo "Description: PyBrewer" >> ${rootDir}/DEBIAN/control
+
+    cp -v postinst ${rootDir}/DEBIAN/postinst
+    chmod -v 0555 ${rootDir}/DEBIAN/postinst
+
+    cp -v prerm ${rootDir}/DEBIAN/prerm
+    chmod -v 0555 ${rootDir}/DEBIAN/prerm
 
     # Create the package
     dpkg-deb --build ${rootDir}
