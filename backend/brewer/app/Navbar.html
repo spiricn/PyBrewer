@@ -27,6 +27,7 @@ function restart() {
 
     xhr.onload = function() {
         alert('restart ok');
+        location.reload(true);
     };
 
     xhr.send()
