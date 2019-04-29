@@ -194,7 +194,7 @@ class Brewer():
         self._server = ServletContainer('',
                                      self._config.port,
                                      self._config.root,
-                                     os.path.join(self._config.root, 'tmp')
+                                     os.path.join(self._config.home, 'tmp')
          )
 
         self._server.insertServlet(0, SessionServlet(self, self._server, '(.*?)'))
