@@ -3,6 +3,7 @@ import logging
 from contextlib import closing
 import datetime
 import html
+from brewer.Handler import MessageType
 from brewer.PushNotifications import PushNotifications
 
 logger = logging.getLogger(__name__)
@@ -83,6 +84,8 @@ class LogHandler(Handler):
         self._pushNotifications = PushNotifications(
             self.brewer.config.pushoverUserToken, self.brewer.config.pushoverAppToken
         )
+
+        self._errorNotificationMessage = None
 
     @property
     def pushNotifications(self):
@@ -210,3 +213,12 @@ class LogHandler(Handler):
 
     def onStop(self):
         self.log(logging.INFO, __name__, 'Session stop')
+
+    def onGetMessages(self):
+        if self._errorNotificationMessage == None and self.getLatestError():
+            # Add error message
+            self._errorNotificationMessage = self.createMessage(MessageType.WARNING, "Errors detected")
+        elif self._errorNotificationMessage and not self.getLatestError():
+            # Clear error message
+            self.deleteMessage(self._errorNotificationMessage)
+            self._errorNotificationMessage = None

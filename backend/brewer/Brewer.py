@@ -331,4 +331,5 @@ class Brewer():
 
         self._server.stop()
 
+        # Error code 64 is an indication to the watchdog, that we should restart right away
         return 0 if not self._restart else 64

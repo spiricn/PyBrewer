@@ -61,7 +61,16 @@ class Handler:
         TODO
         '''
 
+        self.onGetMessages()
+
         return self._messages
+
+    def onGetMessages(self):
+        '''
+        TODO
+        '''
+
+        pass
 
     def createMessage(self, messageType, message):
         '''

@@ -118,12 +118,12 @@ class TemperatureControlHandler(Handler):
         # Relay state
         self._currentState = None
 
+        # Good to go
+        self._initialized = True
+
         if self.brewer.getModule(SettingsHandler).getBoolean(self.STG_KEY_STATE):
             logger.debug('restoring state')
             self.setState(True, rememberChoice=False)
-
-        # Good to go
-        self._initialized = True
 
     def onStop(self):
         # Stop the control (and don't store the choice in DB)

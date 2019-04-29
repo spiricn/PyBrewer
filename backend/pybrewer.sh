@@ -25,7 +25,7 @@ main() {
             # Exited cleanly, so stop watchdog..
             break
         elif [  ${rc} == 64 ]; then
-            # Requested restart
+            # Requested restart by return error code 64
             continue;
         fi
 
