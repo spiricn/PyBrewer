@@ -44,6 +44,12 @@ class Brewer():
 
     EVENT_HEARTBEAT = range(1)
 
+    # Settings key used to remember the last time we backed up
+    STG_KEY_LAST_BACKUP = 'LAST_BACKUP_SEC'
+
+    # Number of attempts to backup before giving up
+    NUM_BACKUP_RETRIES = 5
+
     def __init__(self, config):
         # Is the brewer running or not
         self._running = False
@@ -181,6 +187,34 @@ class Brewer():
 
             time.sleep(2)
 
+            # Check if we need to backup
+            lastBackup = self.getModule(SettingsHandler).getFloat(self.STG_KEY_LAST_BACKUP)
+
+            # Check if it's time for periodic backup
+            if self.config.backupPeriodSec > 0 and currentTime - lastBackup >= self.config.backupPeriodSec:
+                logger.debug('backing up after %d sec'  % (currentTime - lastBackup))
+
+                success = False
+
+                # Attempt to backup with retries
+                for i in range(self.NUM_BACKUP_RETRIES):
+                    try:
+                        self.backup()
+                    except Exception as e:
+                        logger.error('Backup failed: %s' % str(e))
+                        continue
+
+                    success = True
+                    break
+
+                if not success:
+                    self.logError(__name__, 'backup failed')
+                else:
+                    self.logDebug(__name__, 'backup success')
+
+                # Remember when we last backed up
+                self.getModule(SettingsHandler).putFloat(self.STG_KEY_LAST_BACKUP, currentTime)
+
         logger.debug('main loop stopped')
 
         # Stop modules
@@ -234,7 +268,7 @@ class Brewer():
                     ),
                 RestHandler(
                     'backup',
-                    lambda request: self.backup()
+                    self._backupRest
                     )
             )
 
@@ -256,6 +290,15 @@ class Brewer():
 
         return self._restShutdown(request)
 
+    def _backupRest(self, request):
+        try:
+            self.backup()
+        except Exception as e:
+            logger.error('Upload failed: %s' % str(e))
+            return (CODE_BAD_REQUEST, MIME_JSON, {'success' : False, 'message' : str(e)})
+
+        return (CODE_OK, MIME_JSON, {'success' : True})
+
     def backup(self):
         '''
         Backup files to Dropbox
@@ -271,16 +314,10 @@ class Brewer():
             logger.debug('backing up %r' % filePath)
 
             # Upload file
-            try:
-                self.getModule(DropboxHandler).upload(filePath,
-                    '/' + os.path.basename(filePath))
-            except Exception as e:
-                logger.error('Upload failed: %s' % str(e))
-                return (CODE_BAD_REQUEST, MIME_JSON, {'success' : False, 'message' : str(e)})
+            self.getModule(DropboxHandler).upload(filePath,
+                '/' + os.path.basename(filePath))
 
         logger.debug('backup done')
-
-        return (CODE_OK, MIME_JSON, {'success' : True})
 
     @property
     def temperatureControl(self):

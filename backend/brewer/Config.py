@@ -55,6 +55,9 @@ class Config:
         # Dropbox application token
         self.dropboxToken = ''
 
+        # Periodic backup time
+        self.backupPeriodSec = -1
+
     def serialize(self):
         '''
         Serialize configuration to file system

@@ -14,6 +14,8 @@ RUN apt install \
 
 RUN pip3 install pyinstaller
 
+RUN pip3 install dropbox
+
 # Install SSC
 RUN git clone https://github.com/spiricn/ssc.git
 RUN cd ssc && python3 setup.py install
