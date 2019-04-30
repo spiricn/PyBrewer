@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class HistoryHandler(Handler):
     '''
-    Handler which records temperature / controller / relay history
+    Handler which records hardware component state history periodically. These samples may later be retreived to be graphed.
     '''
 
     # Component column value name prefix
@@ -27,6 +27,7 @@ class HistoryHandler(Handler):
     # Time format used for samples
     TIME_FORMAT = '%H:%M:%S'
 
+    # Date / time format used for samples
     DATE_TIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
     # Samples table
@@ -66,23 +67,31 @@ class HistoryHandler(Handler):
         # Get current time
         currentDate = datetime.datetime.now()
 
+        # Sample values which will be inserted into the table (start with time/date)
         sampleValues = [
             currentDate.strftime(self.DATE_FORMAT),
             currentDate.strftime(self.TIME_FORMAT),
         ]
 
+        # Sample columns which will be inserted into the table
         sampleColumns = [
             self.COL_DATE,
             self.COL_TIME
         ]
 
+        # Add hardware component columns dynamically
         sampleColumns += self._getComponentColumns()
 
+        # Get values for each component
         for component in self.brewer.getModule(HardwareHandler).getComponents():
             if component.componentType == ComponentType.SENSOR:
+                # Just use sensor read value
                 value = component.getValue()
             elif component.componentType == ComponentType.SWITCH:
+                # For switches convert on state to 1 or 0
                 value = 1.0 if component.isOn() else 0.0
+            else:
+                raise RuntimeError('Component type support not implemented')
 
             sampleValues.append(value)
 
@@ -99,6 +108,10 @@ class HistoryHandler(Handler):
         self._elapsedSec = 0
 
     def _getComponentColumns(self):
+        '''
+        Get column names for hardware components dynamically
+        '''
+
         sampleColumns = []
 
         for component in self.brewer.getModule(HardwareHandler).getComponents():

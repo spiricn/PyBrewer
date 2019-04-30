@@ -52,6 +52,9 @@ class Config:
         # Warning temperature
         self.warningTemperatureC = None
 
+        # Dropbox application token
+        self.dropboxToken = ''
+
     def serialize(self):
         '''
         Serialize configuration to file system

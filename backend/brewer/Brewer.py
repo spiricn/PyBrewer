@@ -31,6 +31,7 @@ from brewer.ProbeSensor import ProbeSensor
 from brewer.TemperatureReader import TemperatureReader
 from brewer.NotificationHandler import NotificationHandler
 from brewer.LoggingHandler import LoggingHandler
+from brewer.DropboxHandler import DropboxHandler
 from logging import Formatter
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,7 @@ class Brewer():
 
         # Module classes
         modules = (
+                    DropboxHandler,
                     SettingsHandler,
                     SessionHandler,
                     LogHandler,
@@ -229,6 +231,10 @@ class Brewer():
                 RestHandler(
                     'restart',
                     self._restRestart
+                    ),
+                RestHandler(
+                    'backup',
+                    lambda request: self.backup()
                     )
             )
 
@@ -249,6 +255,32 @@ class Brewer():
         self._restart = True
 
         return self._restShutdown(request)
+
+    def backup(self):
+        '''
+        Backup files to Dropbox
+        '''
+
+        # Files we're backing up
+        backupFiles = (
+            self.config.configPath,
+            self.config.databasePath
+        )
+
+        for filePath in backupFiles:
+            logger.debug('backing up %r' % filePath)
+
+            # Upload file
+            try:
+                self.getModule(DropboxHandler).upload(filePath,
+                    '/' + os.path.basename(filePath))
+            except Exception as e:
+                logger.error('Upload failed: %s' % str(e))
+                return (CODE_BAD_REQUEST, MIME_JSON, {'success' : False, 'message' : str(e)})
+
+        logger.debug('backup done')
+
+        return (CODE_OK, MIME_JSON, {'success' : True})
 
     @property
     def temperatureControl(self):

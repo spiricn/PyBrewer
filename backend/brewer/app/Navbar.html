@@ -33,6 +33,23 @@ function restart() {
     xhr.send()
 }
 
+function backup() {
+    var confirmed = confirm("Backup?");
+    if(!confirmed){
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'rest/backup');
+
+    xhr.onload = function() {
+        alert('backup ok');
+        location.reload(true);
+    };
+
+    xhr.send()
+}
+
 function logout() {
     var confirmed = confirm("Logout?");
     if(!confirmed){
@@ -66,6 +83,8 @@ function logout() {
 <td> <a class="main" href="javascript:stop();"> Stop </a> </td>
 
 <td> <a class="main" href="javascript:restart();"> Restart </a> </td>
+
+<td> <a class="main" href="javascript:backup();"> Backup </a> </td>
 
 <td> <a class="main" href="javascript:logout();"> Logout </a> </td>
 
