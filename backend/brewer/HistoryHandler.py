@@ -6,9 +6,11 @@ from brewer.HardwareHandler import HardwareHandler
 from brewer.AComponent import ComponentType
 from rpi.DS18B20.TemperatureSensor import TemperatureSensor
 import sqlite3
+from collections import namedtuple
 
 logger = logging.getLogger(__name__)
 
+Event = namedtuple('Event', 'id, name, time')
 
 class HistoryHandler(Handler):
     '''
@@ -42,7 +44,14 @@ class HistoryHandler(Handler):
     # Sample actual temperature
     COL_VALUE = 'value'
 
-    COL_COMPONENT = 'component'
+    # Events table
+    TABLE_EVENTS = 'events'
+
+    # Event name
+    COL_EVENT_NAME = 'name'
+
+    # Event ID
+    COL_EVENT_ID = 'id'
 
     # Maximum sensor value to be considered valid
     MAX_VALID_SENSOR_VALUE = 9999
@@ -228,6 +237,10 @@ class HistoryHandler(Handler):
                             # Exception thrown if col already exists, probably not the best of solutions..
                             pass
 
+                    cursor.execute('CREATE TABLE IF NOT EXISTS %s (%s integer primary key autoincrement, %s text, %s text)'
+                                    % ( self.TABLE_EVENTS, self.COL_EVENT_ID, self.COL_EVENT_NAME, self.COL_TIME)
+                    )
+
     @staticmethod
     def _getComponentColumnName(component):
         '''
@@ -246,3 +259,95 @@ class HistoryHandler(Handler):
             raise RuntimeError('Invalid colum name %r' % columName)
 
         return columName[len(HistoryHandler.COMP_COLUMN_PREFIX):]
+
+    def createEvent(self, name):
+        '''
+        Create an event with given name
+
+        @param name Event name
+        @return Event object
+        '''
+
+        currentTime = datetime.datetime.now().strftime(self.DATE_TIME_FORMAT)
+
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('INSERT INTO %s (%s, %s) VALUES(?,?)'
+                        % (self.TABLE_EVENTS, self.COL_EVENT_NAME, self.COL_TIME), (name, currentTime)
+                    )
+
+                    return Event(cursor.lastrowid, name, currentTime)
+
+    def getEvent(self, eventId):
+        '''
+        Get an event with given ID
+
+        @param eventId Event ID
+        @return Event object if successful, None otherwise
+        '''
+
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('SELECT * FROM %s WHERE %s=?'
+                        % ( self.TABLE_EVENTS, self.COL_EVENT_ID), (eventId,)
+                    )
+
+                    res = cursor.fetchone()
+
+                    if not res:
+                        return None
+
+                    return Event(res[0], res[1], res[2])
+
+    def updateEvent(self, eventId, name, time):
+        '''
+        Update event with given ID
+
+        @param eventId Event ID
+        @param name New name
+        @param time New time
+        '''
+
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('UPDATE %s set %s=?, %s=? WHERE %s=?'
+                        % ( self.TABLE_EVENTS, self.COL_EVENT_NAME, self.COL_TIME, self.COL_EVENT_ID), (name, time, eventId)
+                    )
+
+    def deleteEvent(self, eventId):
+        '''
+        Delete event with given ID
+
+        @param eventId Event ID
+        '''
+
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('DELETE FROM %s WHERE %s=?'
+                        % (self.TABLE_EVENTS, self.COL_EVENT_ID), (eventId,)
+                    )
+
+    def getEvents(self):
+        '''
+        Get all available events
+
+        @param list of events
+        '''
+
+        with self.brewer.database as conn:
+            with conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.execute('SELECT * FROM %s'
+                        % self.TABLE_EVENTS
+                    )
+
+                    events = []
+
+                    for res in cursor.fetchall():
+                        events.append(Event(res[0], res[1], res[2]))
+
+                    return events
