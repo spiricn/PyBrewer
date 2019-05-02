@@ -149,18 +149,38 @@ class LogHandler(Handler):
 
         return True
 
-    def getLogs(self):
+    def getLogs(self, startTime=None, endTime=None, level=logging.NOTSET):
         '''
         Gets all the logs from database
+
+        @param startTime Start log time
+        @param endTime End log time
+        @param level Minimum logging level
+
+        @return List of log entries
         '''
+
+        if startTime == None:
+            # Default to start of time
+            startTime = datetime.datetime.fromtimestamp(0)
+
+        if endTime == None:
+            # Default to right now
+            endTime = datetime.datetime.now()
 
         with self.brewer.database as conn:
             with conn:
                 with closing(conn.cursor()) as cursor:
                     # Parse the time/date and HTML escape the message
                     return [LogEntry(level, module, html.escape(message), datetime.datetime.strptime(time, self.TIME_FORMAT))
-                    for level, module, message, time in cursor.execute('SELECT * FROM %s ORDER BY %s DESC'
-                                                                                % (self.TABLE_LOGS, self.COL_TIME)
+                    for level, module, message, time in cursor.execute('''
+                                SELECT *
+                                FROM %s
+                                WHERE datetime(%s) BETWEEN ? AND ?
+                                AND %s >= ?
+                                ORDER BY %s DESC'''
+                                % (self.TABLE_LOGS, self.COL_TIME, self.COL_LEVEL, self.COL_TIME),
+                                (startTime.strftime(self.TIME_FORMAT), endTime.strftime(self.TIME_FORMAT), level)
                              ).fetchall()]
 
     def getNumErrors(self):
