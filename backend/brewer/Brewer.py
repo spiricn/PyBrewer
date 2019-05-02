@@ -255,53 +255,16 @@ class Brewer():
         for module in restModules:
             self._server.rest.addApi(module.getRestAPI())
 
-        # Add our own REST API
-        self._server.rest.addApi(
-            (
-                RestHandler(
-                    'status',
-                    self._restStatus
-                    ),
-                RestHandler(
-                    'shutdown',
-                    self._restShutdown
-                    ),
-                RestHandler(
-                    'restart',
-                    self._restRestart
-                    ),
-                RestHandler(
-                    'backup',
-                    self._backupRest
-                    )
-            )
-
-        )
-
         # Register ourselves to the servlet environment (will be available from all the templates)
         self._server.env['Brewer'] = self
 
         self._mainThread = Thread(target=self._mainLoop())
         self._mainThread.start()
 
-    def _restShutdown(self, request):
-        self.stop()
-
-        return (CODE_OK, MIME_JSON, {'success' : True})
-
-    def _restRestart(self, request):
+    def restart(self):
         self._restart = True
 
-        return self._restShutdown(request)
-
-    def _backupRest(self, request):
-        try:
-            self.backup()
-        except Exception as e:
-            logger.error('Upload failed: %s' % str(e))
-            return (CODE_BAD_REQUEST, MIME_JSON, {'success' : False, 'message' : str(e)})
-
-        return (CODE_OK, MIME_JSON, {'success' : True})
+        self.stop()
 
     def backup(self):
         '''
@@ -348,28 +311,6 @@ class Brewer():
 
     def log(self, level, module, message):
         self.getModule(LogHandler).log(level, module, message)
-
-    def _restStatus(self, request):
-        '''
-        Reads the status of everything
-        '''
-
-        status = []
-
-        for component in self.getModule(HardwareHandler).getComponents():
-
-            if component.componentType == ComponentType.SENSOR:
-                value = component.getValue()
-            elif component.componentType == ComponentType.SWITCH:
-                value = 1.0 if component.isOn() else 0.0
-
-            status.append({
-                "value" : value,
-                "name" : component.name,
-                "type" : component.componentType.name
-            })
-
-        return (CODE_OK, MIME_JSON, {'success' : True, 'res' : status})
 
     @property
     def version(self):

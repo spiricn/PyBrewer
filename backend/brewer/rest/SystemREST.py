@@ -1,6 +1,8 @@
 from ssc.servlets.RestServlet import RestHandler
 from brewer.MailHandler import MailHandler
 from brewer.ReportHandler import ReportHandler
+from brewer.HardwareHandler import HardwareHandler
+from brewer.AComponent import ComponentType
 from brewer.rest.BaseREST import BaseREST
 
 
@@ -21,6 +23,35 @@ class SystemREST(BaseREST):
             lambda request: self.brewer.getModule(ReportHandler).sendReport()
         )
 
+        self.addAPI('getStatus',
+            self._getStatus)
+
+        self.addAPI('backup',
+            lambda request: self.brewer.backup())
+
+        self.addAPI('restart',
+            lambda request: self.brewer.restart())
+
+        self.addAPI('stop',
+            lambda request: self.brewer.stop())
+
+    def _getStatus(self, request):
+        status = []
+
+        for component in self.brewer.getModule(HardwareHandler).getComponents():
+
+            if component.componentType == ComponentType.SENSOR:
+                value = component.getValue()
+            elif component.componentType == ComponentType.SWITCH:
+                value = 1.0 if component.isOn() else 0.0
+
+            status.append({
+                "value" : value,
+                "name" : component.name,
+                "type" : component.componentType.name
+            })
+
+        return status
 
     def _mailTest(self, request):
         '''

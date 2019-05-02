@@ -53,7 +53,7 @@ function showHistory(){
 
 function refreshStatus() {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/status');
+    xhr.open('POST', 'rest/system/getStatus');
 
     xhr.onload = function() {
 
@@ -63,7 +63,7 @@ function refreshStatus() {
 
         invalidTemperature = 99999999
 
-        var status = JSON.parse(xhr.response)['res'];
+        var status = JSON.parse(xhr.response)['result'];
 
         for(var i=0; i<status.length; i++){
             var element = document.getElementById(status[i].name);

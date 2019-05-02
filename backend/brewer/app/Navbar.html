@@ -7,7 +7,7 @@ function stop() {
     }
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/shutdown');
+    xhr.open('POST', 'rest/system/stop');
 
     xhr.onload = function() {
         alert('shutdown ok');
@@ -23,7 +23,7 @@ function restart() {
     }
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/restart');
+    xhr.open('POST', 'rest/system/restart');
 
     xhr.onload = function() {
         alert('restart ok');
@@ -40,7 +40,7 @@ function backup() {
     }
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/backup');
+    xhr.open('POST', 'rest/system/backup');
 
     xhr.onload = function() {
         alert('backup ok');
