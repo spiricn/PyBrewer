@@ -58,6 +58,19 @@ class Config:
         # Periodic backup time
         self.backupPeriodSec = -1
 
+        # Email client SMTP server address
+        self.smtpServer = ''
+
+        # Email client SMTP server port
+        self.smtpPort = 587
+
+        # Email client SMTP server username
+        self.smtpUsername = ''
+
+        # Email client SMTP server password
+        # TODO Stored in plain text, terrribly unsercure...
+        self.smtpPassword = ''
+
     def serialize(self):
         '''
         Serialize configuration to file system

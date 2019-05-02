@@ -1,6 +1,10 @@
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from ssc.servlets.RestServlet import RestHandler
 import time
+import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BaseREST:
     def __init__(self, brewer, prefix):
@@ -31,7 +35,10 @@ class BaseREST:
         except Exception as e:
             code = 500
             success = False
+            logger.error('Exception ocurred during REST call: %s' % str(traceback.format_exc()))
+
             errorMessage = str(e)
+
 
         response['success'] = success
         response['executionTime'] = time.time()-startTime

@@ -5,6 +5,7 @@ import sqlite3
 from threading import Thread
 from time import sleep
 import time
+from logging import Formatter
 
 from rpi.IOPin import IOPin
 from ssc.http import HTTP
@@ -25,6 +26,7 @@ from brewer.rest.RelayREST import RelayREST
 from brewer.rest.TemperatureREST import TemperatureREST
 from brewer.SessionServlet import SessionServlet
 from brewer.rest.UserREST import UserREST
+from brewer.rest.SystemREST import SystemREST
 from brewer.HardwareHandler import HardwareHandler, ComponentType
 from brewer.RelaySwitch import RelaySwitch
 from brewer.ProbeSensor import ProbeSensor
@@ -32,7 +34,7 @@ from brewer.TemperatureReader import TemperatureReader
 from brewer.NotificationHandler import NotificationHandler
 from brewer.LoggingHandler import LoggingHandler
 from brewer.DropboxHandler import DropboxHandler
-from logging import Formatter
+from brewer.MailHandler import MailHandler
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +83,8 @@ class Brewer():
                     TemperatureControlHandler,
                     HistoryHandler,
                     HardwareHandler,
-                    NotificationHandler
+                    NotificationHandler,
+                    MailHandler,
         )
 
         self._modules = []
@@ -246,6 +249,7 @@ class Brewer():
             LogREST(self),
             HistoryREST(self),
             UserREST(self),
+            SystemREST(self),
         )
 
         for module in restModules:
