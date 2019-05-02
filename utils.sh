@@ -1,15 +1,21 @@
 #!/bin/bash
 
+#
+# Serve FE app locally
+#
 pb_serve_fe() {
     pushd ${PB_ROOT}/frontend
 
-    local ip=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'`
+    local ip=`ip route get 1.2.3.4 | awk '{print $7}'`
 
     ng serve --host ${ip}
 
     popd
 }
 
+#
+# Push everything to target device
+#
 pb_push() {
     pushd ${PB_ROOT}
 
