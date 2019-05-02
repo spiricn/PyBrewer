@@ -19,9 +19,9 @@ messages = Brewer.getMessages()
 
 <script>
 
-function toggleSwitch(name) {
+function toggleSwitch(id) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/relay/toggle?name=' + name);
+    xhr.open('POST', 'rest/hardware/toggleSwitch?id=' + id);
 
     xhr.onerror = function() {
         alert('toggle failed (error: ' + xhr.status + ')');
@@ -172,7 +172,7 @@ refreshStatus()
             <td id="${component.name}"> </td>
 
             % if component.componentType == ComponentType.SWITCH:
-            <td> <a class="main" href="javascript:toggleSwitch('${component.name}');"> toggle </a> </td>
+            <td> <a class="main" href="javascript:toggleSwitch('${component.id}');"> toggle </a> </td>
             %endif
         </tr>
     % endfor
