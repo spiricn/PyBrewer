@@ -32,7 +32,7 @@ function toggleSwitch(id) {
 
 function setTargetTemperature() {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'rest/temperature/controller/setTarget?temperatureC=' + document.getElementById("targetTemperature").value);
+    xhr.open('POST', 'rest/temperatureControl/setTarget?temperatureC=' + document.getElementById("targetTemperature").value);
 
     xhr.onerror = function() {
         alert('set target failed (error: ' + xhr.status + ')');

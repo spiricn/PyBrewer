@@ -22,8 +22,7 @@ from brewer.SettingsHandler import SettingsHandler
 from brewer.rest.HistoryREST import HistoryREST
 from brewer.rest.LogREST import LogREST
 from brewer.rest.HardwareREST import HardwareREST
-from brewer.rest.RelayREST import RelayREST
-from brewer.rest.TemperatureREST import TemperatureREST
+from brewer.rest.TemperatureControlREST import TemperatureControlREST
 from brewer.SessionServlet import SessionServlet
 from brewer.rest.UserREST import UserREST
 from brewer.rest.SystemREST import SystemREST
@@ -246,8 +245,7 @@ class Brewer():
         # Add all the REST modules
         restModules = (
             HardwareREST(self),
-            TemperatureREST(self),
-            RelayREST(self),
+            TemperatureControlREST(self),
             LogREST(self),
             HistoryREST(self),
             UserREST(self),
