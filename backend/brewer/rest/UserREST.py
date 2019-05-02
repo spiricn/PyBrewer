@@ -25,7 +25,7 @@ class UserREST(BaseREST):
 
     def _logout(self, request):
         '''
-        Logout
+        Logout current session
         '''
         sessionHandler = self._brewer.getModule(SessionHandler)
 

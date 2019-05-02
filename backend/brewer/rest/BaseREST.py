@@ -7,6 +7,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class BaseREST:
+    '''
+    Base REST API class.
+    '''
+
     def __init__(self, brewer, prefix):
         self._brewer = brewer
         self._prefix = prefix
@@ -14,15 +18,32 @@ class BaseREST:
         self._apis = []
 
     def addAPI(self, location, fnc, help=''):
+        '''
+        Add new REST API
+
+        @param location API URI location
+        @param fnc API function
+        @param help Help description
+        '''
+
         self._apis.append(RestHandler(self._prefix + location, lambda request: self._apiCall(request, fnc), help))
 
         return self
 
     @property
     def brewer(self):
+        '''
+        Parent brewer instance
+        '''
+
         return self._brewer
 
     def _apiCall(self, request, fnc):
+        '''
+        API call wrapper
+        '''
+
+        # Start measuring time
         startTime = time.time()
 
         response = {}
@@ -31,8 +52,10 @@ class BaseREST:
         errorMessage = None
 
         try:
+            # Call function
             result = fnc(request)
 
+            # Remember result if it returned some
             if result != None:
                 response['result'] = result
 
@@ -53,4 +76,10 @@ class BaseREST:
         return code, MIME_JSON, response
 
     def getRestAPI(self):
+        '''
+        Gets the list of all the REST APIs
+
+        @return List of REST APIs
+        '''
+
         return self._apis

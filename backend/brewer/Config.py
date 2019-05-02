@@ -5,8 +5,11 @@ from os.path import expanduser
 
 class Config:
     '''
-    Brewer configuration
+    Application conifugration class
     '''
+
+    # Name of the configuration file we're serializing to
+    CONFIG_FILE_NAME = 'config.py'
 
     def __init__(self):
         # Indication if login authorization is enabled
@@ -128,4 +131,4 @@ class Config:
         Configuration file path
         '''
 
-        return os.path.join(self.home, 'config.py')
+        return os.path.join(self.home, self.CONFIG_FILE_NAME)

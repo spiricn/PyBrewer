@@ -15,8 +15,12 @@ logger = logging.getLogger(__name__)
 
 
 class TargetTemperatureSensor(ASensor):
+    '''
+    Virtual target temperature sensor
+    '''
 
     def __init__(self, controlHandler):
+        # TODO Make this configurable
         ASensor.__init__(self, "Target Temperature",
         "_TARGET_TEMP", "rgb(190, 190, 190)", True)
 
@@ -29,8 +33,12 @@ class TargetTemperatureSensor(ASensor):
         return False
 
 class TemperatureControlSwitch(ASwitch):
+    '''
+    Virtual control switch
+    '''
 
     def __init__(self, controlHandler):
+        # TODO Make this configurable
         ASwitch.__init__(self, "TemperatureController",  "_TEMP_CONTROL",'rgb(128, 128, 128)', False)
 
         self._controlHandler = controlHandler
@@ -54,19 +62,19 @@ class TemperatureControlHandler(Handler):
     # Sleep time if error happens
     ERROR_SLEEP_TIME_SEC = 4.0
 
-    #
+    # Setting indicating if the control is on
     STG_KEY_STATE = 'TEMPERATURE_CONTROL_ON'
 
-    #
+    # Setting indicating if the control mode
     STG_KEY_MODE = 'TEMPERATURE_CONTROL_MODE'
 
-    #
+    # Setting indicating target temperature
     STG_KEY_TARGET_TEMP = 'TEMPERATURE_CONTROL_TARGET'
 
-    #
     def __init__(self, brewer):
         Handler.__init__(self, brewer, __name__)
 
+        # Indication if we initialized correctly or not
         self._initialized = False
 
         # Controller running or not
@@ -75,20 +83,23 @@ class TemperatureControlHandler(Handler):
     def onStart(self):
         # Relay controller pin
         self._thermalSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.thermalSwitch)
-
         if not self._thermalSwitch:
+            # Create user message
             self.createMessage(MessageType.WARNING, 'Thermal switch not configured. Change configuration and restart')
 
         # Find pump switch
         self._pumpSwitch = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.pumpSwitch)
         if not self._pumpSwitch:
+            # Create user message
             self.createMessage(MessageType.WARNING, 'Pump switch not configured. Change configuration and restart')
 
         # Temperature sensor
         self._externalSensor = self.brewer.getModule(HardwareHandler).findComponent(self.brewer.config.externalSensor)
         if not self._externalSensor:
+            # Create user message
             self.createMessage(MessageType.WARNING, 'External sensor not configured. Change configuration and restart')
 
+        # Could not find needed components
         if not self._thermalSwitch or not self._externalSensor or not self._externalSensor:
             return
 
@@ -101,20 +112,23 @@ class TemperatureControlHandler(Handler):
         # Add virtual sensor, used to monitor target temperature
         self.brewer.getModule(HardwareHandler).addCustom(TargetTemperatureSensor(self))
 
+        # Map converting the setting string to actual mode enum
         modeMap = {
             'MODE_HEAT' : TemperatureControlAlgorithm.Mode.HEAT,
             'MODE_COOL' : TemperatureControlAlgorithm.Mode.COOL,
         }
 
+        # Get mode from settings
         modeSetting = self.brewer.getModule(SettingsHandler).getString(self.STG_KEY_MODE,
-                                                                       self.brewer.config.mode)
+                                                                       self.brewer.config.mode
+        )
         self._mode = modeMap[modeSetting]
 
         # Instantiate the algorithm
         self._controlAlgorithm = TemperatureControlAlgorithm(self._targetTemperatureCelsius,
                                                              self._mode,
                                                              self.brewer.config.temperatureHysteresisC
-                                                             )
+        )
 
         # Relay state
         self._currentState = None
@@ -122,6 +136,7 @@ class TemperatureControlHandler(Handler):
         # Good to go
         self._initialized = True
 
+        # Get running state from settings
         if self.brewer.getModule(SettingsHandler).getBoolean(self.STG_KEY_STATE):
             logger.debug('restoring state')
             self.setState(True, rememberChoice=False)

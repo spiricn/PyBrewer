@@ -14,10 +14,15 @@ logger = logging.getLogger(__name__)
 
 
 def signalHandler(sig, frame):
+    '''
+    Global application signal handler
+    '''
+
     global brewer
 
     logger.debug('stopping ..')
 
+    # Stop application on ctrl+C
     brewer.stop()
 
 
@@ -28,6 +33,7 @@ def main():
 
     global brewer
 
+    # Create configuration
     config = Config()
 
     # Create home directory if it doesn't exist
@@ -52,9 +58,9 @@ def main():
 
     # Start application
     logger.debug('\n#################\nPyBrewer started, press CTRL+C to stop\n#################\n')
-
     brewer.start()
 
+    # Wait for the application to stop
     return brewer.wait()
 
 
@@ -66,6 +72,7 @@ def installThreadExcepthook():
     If using psyco, call psycho.cannotcompile(threading.Thread.run)
     since this replaces a new-style class method.
     '''
+
     runOld = threading.Thread.run
 
     def run(*args, **kwargs):

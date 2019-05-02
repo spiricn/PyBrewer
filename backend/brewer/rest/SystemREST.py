@@ -19,6 +19,7 @@ class SystemREST(BaseREST):
             self._mailTest
         )
 
+        # Send report via email
         self.addAPI('sendReport',
             lambda request: self.brewer.getModule(ReportHandler).sendReport()
         )
@@ -26,20 +27,28 @@ class SystemREST(BaseREST):
         self.addAPI('getStatus',
             self._getStatus)
 
+        # Backup system
         self.addAPI('backup',
             lambda request: self.brewer.backup())
 
+        # Restart app
         self.addAPI('restart',
             lambda request: self.brewer.restart())
 
+        # Stop app
         self.addAPI('stop',
             lambda request: self.brewer.stop())
 
     def _getStatus(self, request):
+        '''
+        Get component status
+
+        @return List of component statuses
+        '''
+
         status = []
 
         for component in self.brewer.getModule(HardwareHandler).getComponents():
-
             if component.componentType == ComponentType.SENSOR:
                 value = component.getValue()
             elif component.componentType == ComponentType.SWITCH:

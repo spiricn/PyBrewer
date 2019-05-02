@@ -12,15 +12,17 @@ class LogREST(BaseREST):
     def __init__(self, brewer):
         BaseREST.__init__(self, brewer, 'log/')
 
-
+        # Clear all logs
         self.addAPI('clear',
             lambda request: self._brewer.getModule(LogHandler).clear()
         )
 
+        # Test push notification
         self.addAPI('test',
             lambda request: self._brewer.getModule(LogHandler).pushNotifications.sendNotification('PyBrewer', 'This is a test message.')
         )
 
+        # Get all logs
         self.addAPI('getLogs',
             lambda request: [entry.serialize() for entry in self._brewer.getModule(LogHandler).getLogs()]
         )
@@ -28,6 +30,12 @@ class LogREST(BaseREST):
         self.addAPI('getMessages', self._getMessages)
 
     def _getMessages(self, request):
+        '''
+        Gets all handler messages
+
+        @return List of handler messages
+        '''
+
         messages = self._brewer.getMessages()
 
         serializedMessages = []

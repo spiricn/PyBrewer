@@ -4,7 +4,7 @@ from brewer.TemperatureControlHandler import TemperatureControlHandler
 
 class TemperatureControlREST(BaseREST):
     '''
-    Rest API used to read temperature from probes
+    Temperature controller handler REST API
     '''
 
     def __init__(self, brewer):
@@ -13,6 +13,12 @@ class TemperatureControlREST(BaseREST):
         self.addAPI('setTarget', self._setTargetTemp)
 
     def _setTargetTemp(self, request):
+        '''
+        Set target temperature the controller should achieve
+
+        @param temperatuerC Target temperature in celsius
+        '''
+
         targetTemperature = float(request.params['temperatureC'][0])
 
         self.brewer.getModule(TemperatureControlHandler).setTargetTemperature(targetTemperature)

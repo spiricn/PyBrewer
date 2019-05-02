@@ -3,6 +3,9 @@ from rpi.IOPin import IOPin
 
 
 class RelaySwitch(ASwitch):
+    '''
+    Hardware relay switch implementation controled by a GPIO pin
+    '''
 
     def __init__(self, name : str, id : str, color : str, pin : IOPin, graph : bool):
         ASwitch.__init__(self, name, id, color, graph)

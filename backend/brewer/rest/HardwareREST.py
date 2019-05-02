@@ -4,6 +4,7 @@ from brewer.AComponent import ComponentType
 
 class HardwareREST(BaseREST):
     '''
+    Hardware handler REST API
     '''
 
     def __init__(self, brewer):
@@ -32,9 +33,21 @@ Toggle switch component on or off
         )
 
     def _getComponents(self, request):
+        '''
+        Get a list of components
+
+        @return List of components
+        '''
+
         return [component.serialize() for component in self._brewer.getModule(HardwareHandler).getComponents()]
 
     def _toggleSwitch(self, request):
+        '''
+        Toggle a switch on or off
+
+        @param id Switch ID
+        '''
+
         component = self._findComponent(request)
 
         if component.componentType != ComponentType.SWITCH:
@@ -45,20 +58,37 @@ Toggle switch component on or off
         return component.isOn()
 
     def _findComponent(self, request):
+        '''
+        Find component from request
+
+        @param request HTTP request
+
+        @return Component if found, None otherwise
+        '''
+
         componentId = request.params['id'][0]
 
         return self._brewer.getModule(HardwareHandler).findComponent(componentId)
 
     def _readValue(self, request):
+        '''
+        Read component value (e.g. sensor reading, or switch state)
+
+        @param id Component ID
+
+        @return Component value
+        '''
+
         component = self._findComponent(request)
 
         value = None
         if component.componentType == ComponentType.SWITCH:
+            # For switches convert state to 0 or 1
             value = 1.0 if component.isOn() else 0.0
         elif component.componentType == ComponentType.SENSOR:
+            # Read actual value from sensor
             value = component.getValue()
         else:
-            # TODO
             raise NotImplemented('unhandled component type: ' + str(component.componentType))
 
         return value

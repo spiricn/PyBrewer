@@ -10,6 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class LogEntry:
+    '''
+    Log message entry
+    '''
+
     def __init__(self, level, module, message, time):
         self._level = level
         self._module = module
@@ -18,21 +22,41 @@ class LogEntry:
 
     @property
     def level(self):
+        '''
+        Log level
+        '''
+
         return self._level
 
     @property
     def module(self):
+        '''
+        Log module the message originated from
+        '''
+
         return self._module
 
     @property
     def message(self):
+        '''
+        Log message body
+        '''
+
         return self._message
 
     @property
     def time(self):
+        '''
+        Log timestamp
+        '''
+
         return self._time
 
     def serialize(self):
+        '''
+        Serialize to dict
+        '''
+
         return {
             'level' : self._level,
             'module' : self._module,
@@ -85,10 +109,15 @@ class LogHandler(Handler):
             self.brewer.config.pushoverUserToken, self.brewer.config.pushoverAppToken
         )
 
+        # Handler message, used to notify the user that some errors ocurred
         self._errorNotificationMessage = None
 
     @property
     def pushNotifications(self):
+        '''
+        Push notification handler
+        '''
+
         return self._pushNotifications
 
     def update(self, elapsedTime):
@@ -114,12 +143,14 @@ class LogHandler(Handler):
                 logger.warning('Max daily notifications exceeded')
 
             else:
+                # Maps level to human readable string
                 levelMap = {
                     logging.ERROR : 'ERROR',
                     logging.WARN: 'WARNING',
                     logging.CRITICAL : 'CRITICAL',
                 }
 
+                # Send push notification
                 self._pushNotifications.sendNotification('%s: %s' % (levelMap[level], module),
                                                          message)
                 self._notificationsSent += 1
@@ -188,6 +219,8 @@ class LogHandler(Handler):
         Get number of errors in the database
 
         TODO: Make a generic version of this
+
+        @return Number of errors
         '''
 
         with self.brewer.database as conn:

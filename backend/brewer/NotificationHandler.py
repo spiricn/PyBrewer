@@ -7,6 +7,11 @@ logger = logging.getLogger(__name__)
 
 
 class NotificationHandler(Handler):
+    '''
+    Handler used to monitor and notify in case something bad happens
+    '''
+
+    # Temperature value delta
     TEMPERATURE_HYSTERESIS_C = 1.0
 
     def __init__(self, brewer):

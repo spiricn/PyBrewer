@@ -6,6 +6,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class MessageType(Enum):
+    '''
+    Message type
+    '''
+
     INFO = 1
     WARNING = 2
 
@@ -23,6 +27,10 @@ class Handler:
 
     @property
     def name(self):
+        '''
+        Handler name
+        '''
+
         return self._name
 
     @property
@@ -58,7 +66,9 @@ class Handler:
 
     def getMessages(self):
         '''
-        TODO
+        Get active messages created by this handler
+
+        @return List of messages
         '''
 
         self.onGetMessages()
@@ -67,27 +77,34 @@ class Handler:
 
     def onGetMessages(self):
         '''
-        TODO
+        Called in the base class when @getMessages is called by the user
         '''
 
         pass
 
     def createMessage(self, messageType, message):
         '''
-        TODO
+        Creates a new message.
+
+        @param messageType Type of the message
+        @param message Message body
         '''
 
+        # Create message object
         message = Message(messageType, self.name, message, time.time())
 
         logger.debug('new message: ' + str(message))
 
+        # Store it
         self._messages.append(message)
 
         return message
 
     def deleteMessage(self, message):
         '''
-        TODO
+        Delete message
+
+        @param message Message
         '''
 
         self._messages.remove(message)
