@@ -1,46 +1,43 @@
 import json
 
 from brewer.SessionHandler import SessionHandler
-from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from ssc.http.HTTP import HDR_COOKIE, HDR_SET_COOKIE
 from ssc.servlets.RestServlet import RestHandler
 from http.cookies import SimpleCookie
 
+from brewer.rest.BaseREST import BaseREST
 
-class UserREST:
+class UserREST(BaseREST):
     '''
     Rest API for user management
     '''
 
     def __init__(self, brewer):
-        self._brewer = brewer
+        BaseREST.__init__(self, brewer, 'user/')
 
-    def getRestAPI(self):
-        return (
-                RestHandler(
-                    'user/login',
-                    self._login
-                ),
+        self.addAPI('login',
+            self._login
+        )
 
-                RestHandler(
-                    'user/logout',
-                    self._logout
-                ),
+        self.addAPI('logout',
+            self._logout
         )
 
     def _logout(self, request):
         '''
+        Logout
         '''
         sessionHandler = self._brewer.getModule(SessionHandler)
 
         sessionId = self._extractSessionId(request)
 
         if not sessionId:
-            return (500, MIME_JSON, {'success' : False})
+            raise RuntimeError('Could not find session ID')
 
         success = sessionHandler.terminateSession(sessionId)
 
-        return (500 if not success else 200, MIME_JSON, {'success' : success})
+        if not success:
+            raise RuntimeError('Error terminating session')
 
     @staticmethod
     def _extractSessionId(request):
@@ -60,15 +57,14 @@ class UserREST:
 
     def _login(self, request):
         '''
+        Login
         '''
 
         body = request.read()
-        if not body:
-            return (500, MIME_JSON, {'success' : False})
 
         body = json.loads(body.decode('utf-8'))
         if 'username' not in body or 'password' not in body:
-            return (500, MIME_JSON, {'success' : False})
+            raise RuntimeError('Could not find username/password')
 
         username = body['username']
         password = body['password']
@@ -76,11 +72,13 @@ class UserREST:
         sessionId = self._extractSessionId(request)
 
         if not sessionId:
-            return (500, MIME_JSON, {'success' : False})
+            raise RuntimeError('Could not find session ID')
 
         sessionHandler = self._brewer.getModule(SessionHandler)
 
         # Authorize session
         success = sessionHandler.authorizeSession(sessionId, username, password)
 
-        return (500 if not success else 200, MIME_JSON, {'success' : success})
+        if not success:
+            raise RuntimeError('Could not authorize session')
+
