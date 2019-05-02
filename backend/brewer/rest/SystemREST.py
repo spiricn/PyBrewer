@@ -1,5 +1,6 @@
 from ssc.servlets.RestServlet import RestHandler
 from brewer.MailHandler import MailHandler
+from brewer.ReportHandler import ReportHandler
 from brewer.rest.BaseREST import BaseREST
 
 
@@ -12,8 +13,12 @@ class SystemREST(BaseREST):
         BaseREST.__init__(self, brewer, 'system/')
 
 
-        self.addAPI('mailTest',
+        self.addAPI('testMail',
             self._mailTest
+        )
+
+        self.addAPI('sendReport',
+            lambda request: self.brewer.getModule(ReportHandler).sendReport()
         )
 
 
@@ -24,4 +29,4 @@ class SystemREST(BaseREST):
 
         targetMail = request.params['target'][0]
 
-        self._brewer.getModule(MailHandler).send(targetMail, 'PyBrewer test mail', 'Test message')
+        self.brewer.getModule(MailHandler).send(targetMail, 'PyBrewer test mail', 'Test message')

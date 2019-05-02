@@ -71,6 +71,12 @@ class Config:
         # TODO Stored in plain text, terrribly unsercure...
         self.smtpPassword = ''
 
+        # Comma separated list of emails the daily report should be sent to
+        self.reportMails = ''
+
+        # Time at which the report will be sent every day format: %HH:%MM:%SS
+        self.reportTime = '08:00:00'
+
     def serialize(self):
         '''
         Serialize configuration to file system

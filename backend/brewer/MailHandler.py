@@ -33,7 +33,17 @@ class MailHandler(Handler):
                 self.brewer.config.smtpPassword)
         except Exception as e:
             self.createMessage(MessageType.WARNING, "Error logging in to SMTP: %s" % str(e))
+            self._server = None
             return
+
+    def isConfigured(self):
+        '''
+        Check if we're configured and ready to send mails
+
+        @return True if configured False otherwise
+        '''
+
+        return self._server != None
 
     def send(self, toMail, subject, body, bodyType='plain'):
         '''

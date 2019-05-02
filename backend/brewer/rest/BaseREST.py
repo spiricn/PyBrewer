@@ -18,6 +18,10 @@ class BaseREST:
 
         return self
 
+    @property
+    def brewer(self):
+        return self._brewer
+
     def _apiCall(self, request, fnc):
         startTime = time.time()
 

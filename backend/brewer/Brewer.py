@@ -35,6 +35,7 @@ from brewer.NotificationHandler import NotificationHandler
 from brewer.LoggingHandler import LoggingHandler
 from brewer.DropboxHandler import DropboxHandler
 from brewer.MailHandler import MailHandler
+from brewer.ReportHandler import ReportHandler
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +86,7 @@ class Brewer():
                     HardwareHandler,
                     NotificationHandler,
                     MailHandler,
+                    ReportHandler,
         )
 
         self._modules = []
