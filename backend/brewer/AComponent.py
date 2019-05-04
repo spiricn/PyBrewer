@@ -77,5 +77,21 @@ class AComponent:
             'graph' : self.graph,
             'componentType' : self.componentType.name,
             'name' : self.name,
-            'color' : self.color
+            'color' : self._serializeColor(self.color)
         }
+
+    @staticmethod
+    def _serializeColor(color):
+        if color.startswith('#'):
+            return color
+        elif color.startswith('rgb('):
+            rgb = [int(i) for i in color.split('(')[1].split(')')[0].split(',')]
+
+            hexRgb = '#'
+
+            for i in rgb:
+                hexRgb += '%02x' % i
+
+            return hexRgb
+        else:
+            raise RuntimeError('Unkown color format')
