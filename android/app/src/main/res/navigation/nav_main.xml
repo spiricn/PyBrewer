@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools" android:id="@+id/nav_main" app:startDestination="@id/homeFragment">
+
+    <fragment android:id="@+id/componentListFragment" android:name="com.brewer.ui.main.ComponentListFragment"
+              android:label="ComponentListFragment"/>
+    <fragment android:id="@+id/systemFragment" android:name="com.brewer.ui.main.SystemFragment" android:label="system_fragment"
+              tools:layout="@layout/system_fragment"/>
+    <fragment android:id="@+id/homeFragment" android:name="com.brewer.ui.main.HomeFragment"
+              android:label="home_fragment" tools:layout="@layout/home_fragment"/>
+    <fragment android:id="@+id/logFragment" android:name="com.brewer.ui.main.LogFragment" android:label="log_fragment"
+              tools:layout="@layout/log_fragment"/>
+</navigation>
