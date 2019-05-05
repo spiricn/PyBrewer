@@ -7,5 +7,5 @@ data class LogEntry (
 
     val message : String,
 
-    val time : Int
+    val time : String
 )
