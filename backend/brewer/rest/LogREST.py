@@ -49,4 +49,4 @@ class LogREST(BaseREST):
 
             serializedMessages.append(dictMessage)
 
-        return dictMessage
+        return serializedMessages
