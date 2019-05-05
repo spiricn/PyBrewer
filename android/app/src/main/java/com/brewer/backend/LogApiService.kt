@@ -17,7 +17,6 @@ interface LogApiService {
     @GET("test")
     fun test() : Observable<BaseResult<Any>>
 
-
     @GET("getLogs")
     fun getLogs() : Observable<BaseResult<List<LogEntry>>>
 

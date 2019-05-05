@@ -22,6 +22,10 @@
             android:title="Components"/>
 
     <item
+            android:id="@+id/historyFragment"
+            android:title="History"/>
+
+    <item
             android:id="@+id/logFragment"
             android:title="Logs"/>
 

@@ -5,5 +5,7 @@ data class Message (
 
     val title : String,
 
-    val timestamp : Int
+    val message : String,
+
+    val timestamp : Float
 )

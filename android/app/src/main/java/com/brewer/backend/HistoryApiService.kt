@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 
 data class Samples(
-    val time : List<Float>,
+    val time : List<String>,
 
     val samples : Map<String, List<Float>>
 )

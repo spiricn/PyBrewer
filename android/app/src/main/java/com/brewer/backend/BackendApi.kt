@@ -62,7 +62,11 @@ class BackendApi {
     /**
      * System API service
      */
-    fun getSystemApi() = mSystemApiService;
+    fun getSystemApi() = mSystemApiService
+
+    fun getLogApi() = mLogApiService
+
+    fun getHistoryApi() = mHistoryApiService
 
     companion object {
         @Volatile private var instance : BackendApi? = null;
