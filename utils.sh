@@ -23,7 +23,8 @@ pb_push() {
         ${PB_REMOTE_DEVICE}:${PB_REMOTE_LOCATION} \
         --exclude .git \
         --exclude frontend \
-        --exclude doc
+        --exclude doc \
+        --exclude android
 
     popd
 }
