@@ -10,6 +10,7 @@ import android.widget.ProgressBar
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.brewer.Logger
 import com.brewer.R
 import com.brewer.backend.BackendApi
@@ -51,6 +52,14 @@ class HomeFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        view!!.findViewById<SwipeRefreshLayout>(R.id.homeSwipeRefresh).setOnRefreshListener {
+            view?.findViewById<ProgressBar>(R.id.homeMessagesSpinner)!!.visibility = View.VISIBLE
+            view?.findViewById<RecyclerView>(R.id.homeMessageList)!!.visibility = View.GONE
+
+            mViewModel.refresh()
+        }
+
+
         mViewManager = LinearLayoutManager(this.context);
         mComponentListRecyclerView = view?.findViewById(R.id.homeMessageList)!!;
 
@@ -72,10 +81,10 @@ class HomeFragment : Fragment() {
             messages ->
             mMessageAdapter.setItems(messages)
 
-
             view?.findViewById<ProgressBar>(R.id.homeMessagesSpinner)!!.visibility = View.GONE
             view?.findViewById<RecyclerView>(R.id.homeMessageList)!!.visibility = View.VISIBLE
 
+            view!!.findViewById<SwipeRefreshLayout>(R.id.homeSwipeRefresh).isRefreshing = false
         })
 
 

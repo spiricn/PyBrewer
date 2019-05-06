@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.brewer.Logger
 import com.brewer.R
 import com.brewer.backend.BackendApi
@@ -17,7 +18,6 @@ import com.brewer.com.brewer.viewmodels.MainViewModel
 import com.brewer.com.brewer.viewmodels.MainViewModelFactory
 
 class ComponentListFragment : Fragment() {
-
     /**
      * Logger object
      */
@@ -57,6 +57,10 @@ class ComponentListFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        view!!.findViewById<SwipeRefreshLayout>(R.id.componentSwipeRefresh).setOnRefreshListener {
+            mViewModel.refresh()
+        }
+
         // Find views
         mViewManager = LinearLayoutManager(this.context);
         mComponentListRecyclerView = view?.findViewById(R.id.componentList)!!;
@@ -87,8 +91,9 @@ class ComponentListFragment : Fragment() {
                 mComponentListAdapter.setItems(it)
                 mLoadingSpinner.visibility = View.GONE;
                 mComponentListRecyclerView.visibility = View.VISIBLE;
+
+                view!!.findViewById<SwipeRefreshLayout>(R.id.componentSwipeRefresh).isRefreshing = false
             }
         });
     }
-
 }

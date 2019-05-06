@@ -32,7 +32,7 @@ class MainViewModel  constructor(
     /**
      * Refresh data
      */
-    private fun refresh() {
+    fun refresh() {
         // Get a list of components
         hardwareApiService.getComponents()
             .observeOn(AndroidSchedulers.mainThread())
