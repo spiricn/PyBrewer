@@ -1,5 +1,4 @@
 from brewer.ASwitch import ASwitch
-from rpi.IOPin import IOPin
 
 
 class RelaySwitch(ASwitch):
@@ -7,7 +6,7 @@ class RelaySwitch(ASwitch):
     Hardware relay switch implementation controled by a GPIO pin
     '''
 
-    def __init__(self, name : str, id : str, color : str, pin : IOPin, graph : bool):
+    def __init__(self, name : str, id : str, color : str, pin, graph : bool):
         ASwitch.__init__(self, name, id, color, graph)
 
         self._pin = pin

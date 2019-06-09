@@ -1,4 +1,11 @@
-from rpi.DS18B20.TemperatureSensor import TemperatureSensor
+
+from brewer.Utils import Utils
+
+if Utils.isRunningOnPi():
+    from rpi.DS18B20.TemperatureSensor import TemperatureSensor
+else:
+    from brewer.MockTemperatureSensor import MockTemperatureSensor as TemperatureSensor
+
 import time
 
 from threading import Lock

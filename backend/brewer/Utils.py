@@ -1,12 +1,14 @@
+import os
+
 class Utils:
 
     @staticmethod
     def getHumanReadableSize(size):
         '''
         Formats size into human readable string
-        
+
         @param size: Size in bytes
-        @return: Human readable string 
+        @return: Human readable string
         '''
 
         if size < 1024:
@@ -26,3 +28,8 @@ class Utils:
         res += ' ' + unit
 
         return res
+
+    @staticmethod
+    def isRunningOnPi():
+        # Might be a better way of doing this
+        return os.uname()[4].startswith("arm")

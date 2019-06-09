@@ -7,7 +7,7 @@ from time import sleep
 import time
 from logging import Formatter
 
-from rpi.IOPin import IOPin
+
 from ssc.http import HTTP
 from ssc.http.HTTP import CODE_OK, MIME_TEXT, MIME_JSON, MIME_HTML, CODE_BAD_REQUEST
 from ssc.servlets.RestServlet import RestHandler
@@ -35,8 +35,15 @@ from brewer.LoggingHandler import LoggingHandler
 from brewer.DropboxHandler import DropboxHandler
 from brewer.MailHandler import MailHandler
 from brewer.ReportHandler import ReportHandler
+from brewer.Utils import Utils
 
 logger = logging.getLogger(__name__)
+
+
+if Utils.isRunningOnPi():
+    from rpi.IOPin import IOPin
+else:
+    from brewer.MockIOPin import MockIOPin as IOPin
 
 
 class Brewer():
